@@ -1,0 +1,22 @@
+node_modules/
+dist/
+.env
+.env.local
+.env.*.local
+*.log
+public/uploads/*
+!public/uploads/.gitkeep
+*.DS_Store
+
+# Strict Zero Database Commits
+*.db
+*.db-*
+*.db.*
+*.sqlite
+*.sqlite3
+*-shm
+*-wal
+*.sql
+*.dump
+*backup*
+data/

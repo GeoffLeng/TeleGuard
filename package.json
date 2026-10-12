@@ -1,0 +1,35 @@
+{
+  "name": "teleguard-bot",
+  "version": "1.0.0",
+  "description": "TeleGuard - Telegram Community Moderation, Anti-Spam & Lucky Draw Suite",
+  "main": "dist/bot.js",
+  "scripts": {
+    "dev": "tsx src/bot.ts",
+    "build": "tsc",
+    "start": "node dist/bot.js",
+    "userbot:setup": "tsx src/userbot-setup.ts"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^8.5.2",
+    "grammy": "^1.22.4",
+    "helmet": "^8.2.0",
+    "multer": "^1.4.5-lts.1",
+    "node-cron": "^3.0.3",
+    "sharp": "^0.33.4",
+    "sqlite": "^5.1.1",
+    "sqlite3": "^5.1.7",
+    "telegram": "^2.26.22"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/multer": "^1.4.12",
+    "@types/node": "^20.12.7",
+    "@types/node-cron": "^3.0.11",
+    "tsx": "^4.7.2",
+    "typescript": "^5.4.5"
+  }
+}
