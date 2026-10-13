@@ -59,3 +59,47 @@ Chronological technical record of the standalone community bot extraction from T
    - Verified all 35 admin and giveaway endpoints aligned with 0 missing routes.
 
 ---
+
+### [2026-10-13] Security Hardening: Strict Secrets & Environment Variable Isolation
+
+#### 1. Context & Objective
+- Prevent any accidental commitment or leak of sensitive secrets (API keys, Telegram bot tokens, session files, passwords) to GitHub or remote repositories.
+- Standardize local environment generation to strictly isolate `.env` from git tracking.
+
+#### 2. Resolutions Applied
+1. **Repository Security Hardening (`.gitignore`)**:
+   - Expanded ignore filters: `.env`, `.env.*`, `*.session`, `*.session-journal`, `*.pem`, `*.key`, `*.cert`.
+   - Explicitly preserved `.env.example` as a tracked, sanitized configuration template.
+2. **Project Policy Enforcement (`.agents/AGENTS.md`)**:
+   - Codified `Strict Zero Secrets / API Keys / Bot Tokens Exposure Rule`: Real credentials must never be written into tracked codebase files or templates; only clear placeholders permitted.
+
+---
+
+### [2026-10-13] Bug Fix: Lucky Draw Module Tab Activation Restoration
+
+#### 1. Context & Root Cause
+- When clicking the "Lucky Draw" top tab in [public/admin.html](file:///f:/Antigravity_Project/TeleGuard/public/admin.html), the module failed to open.
+- **Root Cause**: The HTML header buttons triggered `onclick="switchModule('draw')"`, but `switchModule` was missing from [public/js/admin.js](file:///f:/Antigravity_Project/TeleGuard/public/js/admin.js), throwing `Uncaught ReferenceError: switchModule is not defined`. Consequently, `#module-draw` remained hidden and `loadDrawModule()` was never called.
+
+#### 2. Resolutions Applied
+1. **Implemented `switchModule(moduleName)`**:
+   - Added in [public/js/admin.js](file:///f:/Antigravity_Project/TeleGuard/public/js/admin.js#L233-L255) to dynamically toggle `#module-community` and `#module-draw`, seamlessly switching active tab styling and triggering `loadDrawModule()` + `initDrawQuill()`.
+2. **Complete Global Window Exports**:
+   - Exported all Draw modal controllers (`openCreateDrawModal`, `openEditDrawModal`, `closeDrawCampaignModal`, `openDrawWinnersModal`, `openDrawSettingsModal`, `loadDrawModule`, etc.) to the `window` scope for robust inline HTML event binding.
+3. **Asset Sanitization**:
+   - Polished remaining legacy "Cashbox Draw" titles and CSV export filenames to "Lucky Draw" / "TeleGuard Draw".
+
+---
+
+### [2026-10-13] Bug Fix: Lucky Draw Master Switch Visual Reactivity Restoration
+
+#### 1. Context & Root Cause
+- When clicking the Lucky Draw master switch ("开关: 运行中 / 休眠"), the switch failed to visually update immediately. Only after switching tabs to Community Management and back did the new state reflect.
+- **Root Cause**: The backend `/api/draw/status/toggle` endpoint succeeded and updated SQLite. However, upon completion, `toggleDrawEngineMasterSwitch()` attempted to call `showToastNotification(...)`, which was undefined in [public/js/admin.js](file:///f:/Antigravity_Project/TeleGuard/public/js/admin.js). This threw `Uncaught ReferenceError: showToastNotification is not defined`, catching into the error block that rolled back the UI switch state (`updateDrawEngineUI(!targetState)`). Tab re-entry re-fetched `/api/draw/status`, which displayed the true server-persisted state.
+
+#### 2. Resolutions Applied
+1. **Implemented Floating `showToastNotification(message, type)`**:
+   - Added in [public/js/admin.js](file:///f:/Antigravity_Project/TeleGuard/public/js/admin.js#L1847-L1925), featuring automatic DOM injection, Cyber Dark gradients for success/info/error, micro-animations, and 3.5s auto-dismiss.
+   - Restored instant optimistic UI rendering and flawless state synchronization on switch toggles.
+
+

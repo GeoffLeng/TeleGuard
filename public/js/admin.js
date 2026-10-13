@@ -230,6 +230,31 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
+// Global Module Switching (Community Management vs Lucky Draw)
+function switchModule(moduleName) {
+  const btnCommunity = document.getElementById("btn-module-community");
+  const btnDraw = document.getElementById("btn-module-draw");
+  const modCommunity = document.getElementById("module-community");
+  const modDraw = document.getElementById("module-draw");
+
+  if (moduleName === "draw") {
+    if (btnCommunity) btnCommunity.classList.remove("active");
+    if (btnDraw) btnDraw.classList.add("active");
+    if (modCommunity) modCommunity.classList.add("hidden");
+    if (modDraw) {
+      modDraw.classList.remove("hidden");
+      initDrawQuill();
+      loadDrawModule();
+    }
+  } else {
+    if (btnDraw) btnDraw.classList.remove("active");
+    if (btnCommunity) btnCommunity.classList.add("active");
+    if (modDraw) modDraw.classList.add("hidden");
+    if (modCommunity) modCommunity.classList.remove("hidden");
+  }
+}
+window.switchModule = switchModule;
+
 // Section switching
 function switchSection(section) {
   activeSection = section;
@@ -1819,6 +1844,80 @@ async function fetchDrawApi(endpoint, options = {}) {
   return data;
 }
 
+// Floating Cyber Dark Toast Notification
+function showToastNotification(message, type = 'show') {
+  let container = document.getElementById('global-toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'global-toast-container';
+    container.style.cssText = `
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 999999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+      max-width: 420px;
+    `;
+    document.body.appendChild(container);
+  }
+
+  const toast = document.createElement('div');
+  toast.className = 'floating-toast-item';
+  
+  let bg = 'linear-gradient(135deg, rgba(16, 185, 129, 0.95) 0%, rgba(5, 150, 105, 0.95) 100%)';
+  let border = 'rgba(52, 211, 153, 0.4)';
+  let shadow = '0 10px 25px -5px rgba(16, 185, 129, 0.4)';
+  
+  if (type === 'info') {
+    bg = 'linear-gradient(135deg, rgba(59, 130, 246, 0.95) 0%, rgba(37, 99, 235, 0.95) 100%)';
+    border = 'rgba(96, 165, 250, 0.4)';
+    shadow = '0 10px 25px -5px rgba(59, 130, 246, 0.4)';
+  } else if (type === 'hide' || type === 'error') {
+    bg = 'linear-gradient(135deg, rgba(239, 68, 68, 0.95) 0%, rgba(220, 38, 38, 0.95) 100%)';
+    border = 'rgba(248, 113, 113, 0.4)';
+    shadow = '0 10px 25px -5px rgba(239, 68, 68, 0.4)';
+  }
+
+  toast.style.cssText = `
+    background: ${bg};
+    border: 1px solid ${border};
+    box-shadow: ${shadow}, 0 4px 6px -2px rgba(0, 0, 0, 0.5);
+    color: #ffffff;
+    padding: 12px 18px;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: 0.01em;
+    pointer-events: auto;
+    opacity: 0;
+    transform: translateY(-12px) scale(0.96);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    backdrop-filter: blur(8px);
+    word-break: break-word;
+  `;
+  toast.textContent = message;
+  container.appendChild(toast);
+
+  // Trigger enter animation
+  requestAnimationFrame(() => {
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateY(0) scale(1)';
+  });
+
+  // Auto-dismiss
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(-10px) scale(0.96)';
+    setTimeout(() => {
+      if (toast.parentElement) toast.parentElement.removeChild(toast);
+    }, 250);
+  }, 3500);
+}
+window.showToastNotification = showToastNotification;
 
 // Update Top Draw Engine Master Switch UI
 function updateDrawEngineUI(enabled) {
@@ -3651,7 +3750,7 @@ function exportDrawWinnersCsv() {
   const encodedUri = encodeURI(csvContent);
   const link = document.createElement('a');
   link.setAttribute('href', encodedUri);
-  link.setAttribute('download', `cashbox_draw_winners_${Date.now()}.csv`);
+  link.setAttribute('download', `teleguard_draw_winners_${Date.now()}.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -3776,4 +3875,24 @@ window.closeParticipantPickerModal = closeParticipantPickerModal;
 window.onParticipantPickerInput = onParticipantPickerInput;
 window.resetParticipantPickerSearch = resetParticipantPickerSearch;
 window.doSearchParticipantPicker = doSearchParticipantPicker;
+
+// Lucky Draw Modal and Operation Global Exports
+window.openCreateDrawModal = openCreateDrawModal;
+window.openEditDrawModal = openEditDrawModal;
+window.closeDrawCampaignModal = closeDrawCampaignModal;
+window.handleSaveDrawCampaign = handleSaveDrawCampaign;
+window.toggleDrawModeFields = toggleDrawModeFields;
+window.addPrizeTierRow = addPrizeTierRow;
+window.removePrizeTierRow = removePrizeTierRow;
+window.openDrawWinnersModal = openDrawWinnersModal;
+window.closeDrawWinnersModal = closeDrawWinnersModal;
+window.openDrawSettingsModal = openDrawSettingsModal;
+window.closeDrawSettingsModal = closeDrawSettingsModal;
+window.testDrawBotPing = testDrawBotPing;
+window.handleSaveDrawBotMessages = handleSaveDrawBotMessages;
+window.loadDrawModule = loadDrawModule;
+window.connectDrawSessionBot = connectDrawSessionBot;
+window.disconnectDrawSessionBot = disconnectDrawSessionBot;
+window.filterDrawCampaigns = filterDrawCampaigns;
+window.onSearchDrawCampaigns = onSearchDrawCampaigns;
 

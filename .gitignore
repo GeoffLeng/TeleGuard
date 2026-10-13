@@ -1,8 +1,14 @@
 node_modules/
 dist/
+# Strict Secrets & Environment Variables Isolation
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
+*.session
+*.session-journal
+*.pem
+*.key
+*.cert
 *.log
 public/uploads/*
 !public/uploads/.gitkeep

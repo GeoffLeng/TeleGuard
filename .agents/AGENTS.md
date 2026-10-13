@@ -19,3 +19,12 @@
 ## Continuous Documentation Sync
 1. Whenever a feature is updated, synchronize `tasks/project_feature_checklist.md`.
 2. Whenever an important bug is resolved, record into `tasks/project_resolution_log.md`.
+
+## Strict Zero Secrets / API Keys / Bot Tokens Exposure Rule
+1. **Strict Secrets Isolation**:
+   - Absolutely NEVER commit, stage, or push any `.env`, secret files, API keys, bot tokens, passwords, session tokens (`*.session`), or private credentials to Git.
+   - All sensitive files must be strictly maintained in `.gitignore` (`.env*`, `*.session`, `*.key`, `*.pem`).
+2. **Zero Real Credentials Generation**:
+   - Never write real production tokens/keys into tracked codebase files or templates.
+   - All code examples, tests, and documentation must use non-functional placeholder values (e.g., `123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ`).
+
