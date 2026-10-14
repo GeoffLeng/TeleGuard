@@ -57,9 +57,10 @@ async function fetchLeaderboard() {
     renderFooter(data.currentUser);
   } catch (err) {
     console.error("Failed to load leaderboard:", err);
+    const errText = window.i18n ? window.i18n.t("lb_error") : "Failed to load leaderboard data.";
     listEl.innerHTML = `<div class="empty-state">
       <span class="empty-icon">⚠️</span>
-      <p>Failed to load leaderboard data.</p>
+      <p>${escapeHtml(errText)}</p>
     </div>`;
     if (footerEl) footerEl.classList.add("hidden");
   }
@@ -68,9 +69,10 @@ async function fetchLeaderboard() {
 function renderLeaderboard(users) {
   const listEl = document.getElementById("leaderboard-list");
   if (!users || users.length === 0) {
+    const emptyText = window.i18n ? window.i18n.t("lb_empty") : "No activity records yet for this period.";
     listEl.innerHTML = `<div class="empty-state">
       <span class="empty-icon">🏆</span>
-      <p>No activity records yet for this period.</p>
+      <p>${escapeHtml(emptyText)}</p>
     </div>`;
     return;
   }
@@ -115,7 +117,8 @@ function renderFooter(currentUser) {
 
   footerEl.classList.remove("hidden");
   document.getElementById("footer-rank").textContent = currentUser.rank > 0 ? `#${currentUser.rank}` : "#--";
-  const fullName = [currentUser.first_name, currentUser.last_name].filter(Boolean).join(" ") || "You";
+  const defaultYou = window.i18n ? window.i18n.t("lb_you") : "You";
+  const fullName = [currentUser.first_name, currentUser.last_name].filter(Boolean).join(" ") || defaultYou;
   document.getElementById("footer-name").textContent = fullName;
 
   const scoreVal = currentTab === "weekly" ? (currentUser.weekly_xp || 0) : (currentUser.total_xp || 0);
@@ -141,3 +144,8 @@ function escapeHtml(str) {
 document.addEventListener("DOMContentLoaded", () => {
   fetchLeaderboard();
 });
+
+window.addEventListener("teleguard_lang_changed", () => {
+  fetchLeaderboard();
+});
+

@@ -114,25 +114,37 @@ loginForm.addEventListener("submit", async (e) => {
 if (btnTgLogin) {
   btnTgLogin.addEventListener("click", async () => {
     btnTgLogin.disabled = true;
-    btnTgLogin.textContent = "Requesting Authorization...";
+    const origHtml = btnTgLogin.innerHTML;
+    btnTgLogin.innerHTML = `<span>${window.i18n ? window.i18n.t("loading") : "Requesting Authorization..."}</span>`;
+    if (loginError) loginError.classList.add("hidden");
+
     try {
       const res = await fetch("/api/admin/auth/init");
-      if (!res.ok) throw new Error("Failed to initialize authentication");
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || "Failed to initialize authentication");
+      }
       const { token, code, botUsername } = await res.json();
       
-      const tgLink = `https://t.me/${botUsername}?start=${token}`;
-      
-      lnkTgBot.href = tgLink;
+      const tgLink = botUsername ? `https://t.me/${botUsername}?start=${token}` : "#";
+      if (lnkTgBot) {
+        lnkTgBot.href = tgLink;
+      }
       if (tgAuthCode) {
         tgAuthCode.textContent = code;
       }
-      const tgBotUsernameDisplay = document.getElementById("tg-bot-username-display");
-      if (tgBotUsernameDisplay) {
-        tgBotUsernameDisplay.textContent = `@${botUsername}`;
+
+      const tgInstruction = document.getElementById("tg-auth-instruction-top");
+      if (tgInstruction) {
+        const displayBot = botUsername ? `@${botUsername}` : "@Bot";
+        const template = (window.i18n && window.i18n.t("login_tg_step1")) || "Please open @Bot on Telegram and send the verification code below to login:";
+        tgInstruction.innerHTML = `<span>${template.replace("@Bot", `<strong style="color: #38bdf8;">${displayBot}</strong>`)}</span>`;
       }
       
       btnTgLogin.classList.add("hidden");
-      tgAuthQrContainer.classList.remove("hidden");
+      if (tgAuthQrContainer) {
+        tgAuthQrContainer.classList.remove("hidden");
+      }
       
       // Start polling status
       if (pollInterval) clearInterval(pollInterval);
@@ -148,7 +160,7 @@ if (btnTgLogin) {
               showDashboard();
             } else if (status === "expired") {
               clearInterval(pollInterval);
-              alert("Authentication request expired. Please try again.");
+              alert(window.i18n ? (window.i18n.getLang() === "zh" ? "授权已过期，请重新发起登录。" : "Authentication request expired. Please try again.") : "Authentication request expired. Please try again.");
               resetTgLoginUI();
             }
           }
@@ -159,7 +171,12 @@ if (btnTgLogin) {
       
     } catch (err) {
       console.error(err);
-      alert("Failed to start Telegram login. Please check server connection.");
+      if (loginError) {
+        loginError.textContent = err.message || (window.i18n && window.i18n.getLang() === "zh" ? "无法启动 Telegram 授权，请检查服务连接。" : "Failed to start Telegram login. Please check server connection.");
+        loginError.classList.remove("hidden");
+      } else {
+        alert(err.message || "Failed to start Telegram login. Please check server connection.");
+      }
       resetTgLoginUI();
     }
   });
@@ -169,9 +186,10 @@ function resetTgLoginUI() {
   if (btnTgLogin) {
     btnTgLogin.disabled = false;
     btnTgLogin.classList.remove("hidden");
+    const label = window.i18n ? window.i18n.t("login_tg_btn") : "Login via Telegram";
     btnTgLogin.innerHTML = `
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle;"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
-      Login via Telegram
+      <span data-i18n="login_tg_btn">${escapeHtml(label)}</span>
     `;
   }
   if (tgAuthQrContainer) {
@@ -197,6 +215,8 @@ async function verifyPassword(password) {
 
 function showDashboard() {
   loginContainer.classList.add("hidden");
+  const loginLang = document.getElementById("login-lang-switch-wrapper");
+  if (loginLang) loginLang.classList.add("hidden");
   dashboardContainer.classList.remove("hidden");
   loadSettings();
   loadUsers();
@@ -214,6 +234,8 @@ function logout() {
   sessionStorage.removeItem("admin_password");
   adminPassword = "";
   loginContainer.classList.remove("hidden");
+  const loginLang = document.getElementById("login-lang-switch-wrapper");
+  if (loginLang) loginLang.classList.remove("hidden");
   dashboardContainer.classList.add("hidden");
   resetTgLoginUI();
 }
@@ -221,8 +243,8 @@ function logout() {
 // Check initial status
 document.addEventListener("DOMContentLoaded", async () => {
   if (adminPassword) {
-    const success = await verifyPassword(adminPassword);
-    if (success) {
+    const res = await verifyPassword(adminPassword);
+    if (res && res.success) {
       showDashboard();
     } else {
       logout();
@@ -1932,7 +1954,7 @@ function updateDrawEngineUI(enabled) {
     toggleSwitch.disabled = false;
   }
   if (toggleLabel) {
-    toggleLabel.textContent = enabled ? '运行中' : '休眠';
+    toggleLabel.textContent = enabled ? (window.i18n ? window.i18n.t('draw_engine_running') : 'Running') : (window.i18n ? window.i18n.t('draw_engine_sleeping') : 'Sleeping');
     toggleLabel.style.color = enabled ? '#10b981' : '#94a3b8';
   }
 
@@ -1973,7 +1995,7 @@ async function toggleDrawEngineMasterSwitch(desiredState) {
   // Optimistic UI update: slider instantly glides to green/gray
   if (toggleSwitch) toggleSwitch.checked = targetState;
   if (toggleLabel) {
-    toggleLabel.textContent = targetState ? '运行中' : '休眠';
+    toggleLabel.textContent = targetState ? (window.i18n ? window.i18n.t('draw_engine_running') : 'Running') : (window.i18n ? window.i18n.t('draw_engine_sleeping') : 'Sleeping');
     toggleLabel.style.color = targetState ? '#10b981' : '#94a3b8';
   }
   updateDrawEngineUI(targetState);
@@ -1986,21 +2008,21 @@ async function toggleDrawEngineMasterSwitch(desiredState) {
     drawState.engineEnabled = !!res.enabled;
     updateDrawEngineUI(res.enabled);
     if (res.enabled) {
-      showToastNotification('⚡ 抽奖引擎已成功唤醒！自动开奖调度器已启动。', 'show');
+      showToastNotification(window.i18n ? window.i18n.t('toast_engine_woken') : '⚡ Lucky draw engine active! Auto draw scheduler started.', 'show');
       loadDrawModule();
     } else {
-      showToastNotification('💤 抽奖引擎已进入休眠模式：0 内存占用。', 'info');
+      showToastNotification(window.i18n ? window.i18n.t('toast_engine_slept') : '💤 Lucky draw engine sleeping: 0 memory overhead.', 'info');
       updateDrawBotStatusUI(null);
     }
   } catch (err) {
     // Rollback switch state on error
     if (toggleSwitch) toggleSwitch.checked = !targetState;
     if (toggleLabel) {
-      toggleLabel.textContent = !targetState ? '运行中' : '休眠';
+      toggleLabel.textContent = !targetState ? (window.i18n ? window.i18n.t('draw_engine_running') : 'Running') : (window.i18n ? window.i18n.t('draw_engine_sleeping') : 'Sleeping');
       toggleLabel.style.color = !targetState ? '#10b981' : '#94a3b8';
     }
     updateDrawEngineUI(!targetState);
-    showToastNotification('切换抽奖引擎状态失败: ' + err.message, 'hide');
+    showToastNotification((window.i18n ? window.i18n.t('toast_toggle_failed') : 'Failed to toggle draw engine: ') + err.message, 'hide');
   } finally {
     if (toggleSwitch) toggleSwitch.disabled = false;
     setTimeout(() => {
@@ -2241,8 +2263,8 @@ function renderDrawCampaigns() {
                 ${escapeHtml((l.description || 'No description provided.').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim())}
               </p>
             </div>
-            <button type="button" class="btn btn-secondary btn-xs" onclick="copyDrawCampaignAsTemplate('${l.id}')" title="复制此活动为新模板 (Copy as Template)" style="padding: 5px 9px; font-size: 0.78rem; font-weight: 600; white-space: nowrap; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.15); background: rgba(30, 41, 59, 0.85); color: #cbd5e1; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; flex-shrink: 0; transition: all 0.2s ease;">
-              📋 复制
+            <button type="button" class="btn btn-secondary btn-xs" onclick="copyDrawCampaignAsTemplate('${l.id}')" title="Copy as Template" data-i18n-title="draw_copy_template_title" style="padding: 5px 9px; font-size: 0.78rem; font-weight: 600; white-space: nowrap; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.15); background: rgba(30, 41, 59, 0.85); color: #cbd5e1; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; flex-shrink: 0; transition: all 0.2s ease;">
+              📋 Copy
             </button>
           </div>
 
@@ -2268,7 +2290,7 @@ function renderDrawCampaigns() {
             ${l.designatedWinners && l.designatedWinners.length > 0 ? `
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span style="color: var(--text-muted);">Designated:</span>
-                <span style="color: #38bdf8; font-weight: 600; font-size: 0.78rem;">🎯 已预设 ${l.designatedWinners.length} 位中奖者</span>
+                <span style="color: #38bdf8; font-weight: 600; font-size: 0.78rem;">🎯 ${l.designatedWinners.length} ${window.i18n ? window.i18n.t("draw_designated_badge") : "Designated"}</span>
               </div>
             ` : ''}
           </div>
@@ -2490,7 +2512,7 @@ function toggleDrawModeFields() {
 function updateDrawFormClock() {
   const clockEl = document.getElementById('draw-form-bjt-clock');
   if (clockEl) {
-    clockEl.textContent = `当前北京: ${formatBjtDisplay(new Date())}`;
+    clockEl.textContent = `${window.i18n ? window.i18n.t('draw_current_bjt') : 'Current BJT'}: ${formatBjtDisplay(new Date())}`;
   }
 }
 
@@ -2573,16 +2595,16 @@ async function handleSaveDrawCampaign(event) {
 
   if (drawMode === 'AUTO') {
     if (!autoDrawTime) {
-      alert('⚠️ 请设置自动开奖时间 (UTC+8)！');
+      alert(window.i18n ? window.i18n.t('alert_set_autodraw_time') : '⚠️ Please set an auto draw time (UTC+8)!');
       return;
     }
     const autoDrawMs = new Date(autoDrawTime).getTime();
     if (isNaN(autoDrawMs)) {
-      alert('⚠️ 自动开奖时间格式无效，请重新选择！');
+      alert(window.i18n ? window.i18n.t('alert_invalid_time_format') : '⚠️ Invalid auto draw time format, please reselect!');
       return;
     }
     if (autoDrawMs <= Date.now()) {
-      alert(`⚠️ 自动开奖时间不能早于当前时间！\n\n当前北京时间: ${formatBjtDisplay(new Date())}\n所选开奖时间: ${formatBjtDisplay(autoDrawTime)}\n\n请设置未来的开奖时间。`);
+      alert(window.i18n ? window.i18n.t('alert_time_cannot_be_past') : `⚠️ Auto draw time cannot be in the past!\n\nCurrent BJT: ${formatBjtDisplay(new Date())}\nSelected Time: ${formatBjtDisplay(autoDrawTime)}\n\nPlease set a future time.`);
       return;
     }
   }
@@ -2637,7 +2659,7 @@ async function publishDrawCampaign(id) {
 
   // Interlock check: Is draw engine currently dormant?
   if (!drawState.engineEnabled) {
-    const autoWake = confirm('⚠️ 抽奖引擎当前处于休眠状态（后台自动开奖调度器已停用）。\n\n发布活动后需要引擎处于运行状态才能自动结算与推送。\n\n是否立即一键唤醒抽奖引擎并发布活动？');
+    const autoWake = confirm(window.i18n ? window.i18n.t('confirm_wake_and_publish') : '⚠️ Lucky draw engine is currently sleeping.\n\nWake up engine now and publish campaign?');
     if (!autoWake) return;
     try {
       const wakeRes = await fetchDrawApi('/status/toggle', {
@@ -2646,9 +2668,9 @@ async function publishDrawCampaign(id) {
       });
       drawState.engineEnabled = !!wakeRes.enabled;
       updateDrawEngineUI(wakeRes.enabled);
-      showToastNotification('⚡ 抽奖引擎已自动唤醒！', 'show');
+      showToastNotification(window.i18n ? window.i18n.t('toast_engine_auto_woken') : '⚡ Lucky draw engine has been automatically activated!', 'show');
     } catch (e) {
-      alert('唤醒抽奖引擎失败: ' + e.message);
+      alert((window.i18n ? window.i18n.t('alert_wake_failed') : 'Failed to wake up draw engine: ') + e.message);
       return;
     }
   }
@@ -2682,7 +2704,7 @@ async function openDrawConfirmModal(id) {
 
   // Interlock check: Ensure engine is awake
   if (!drawState.engineEnabled) {
-    const autoWake = confirm('⚠️ 抽奖引擎当前处于休眠状态。\n\n执行开奖并宣布中奖者需要引擎处于运行状态。\n\n是否立即唤醒引擎并进入开奖确认？');
+    const autoWake = confirm(window.i18n ? window.i18n.t('confirm_wake_and_draw') : '⚠️ Lucky draw engine is currently sleeping.\n\nWake up engine now to proceed with draw?');
     if (!autoWake) return;
     try {
       const wakeRes = await fetchDrawApi('/status/toggle', {
@@ -2691,9 +2713,9 @@ async function openDrawConfirmModal(id) {
       });
       drawState.engineEnabled = !!wakeRes.enabled;
       updateDrawEngineUI(wakeRes.enabled);
-      showToastNotification('⚡ 抽奖引擎已自动唤醒！', 'show');
+      showToastNotification(window.i18n ? window.i18n.t('toast_engine_auto_woken') : '⚡ Lucky draw engine has been automatically activated!', 'show');
     } catch (e) {
-      alert('唤醒抽奖引擎失败: ' + e.message);
+      alert((window.i18n ? window.i18n.t('alert_wake_failed') : 'Failed to wake up draw engine: ') + e.message);
       return;
     }
   }
@@ -2709,10 +2731,10 @@ async function openDrawConfirmModal(id) {
   
   const totalPrizeCount = (lottery.prizes || []).reduce((sum, p) => sum + p.count, 0);
   const prizeSummary = (lottery.prizes || []).map(p => `${p.count}x ${p.name}`).join(', ');
-  if (prizesEl) prizesEl.textContent = `${prizeSummary} (共 ${totalPrizeCount} 份)`;
+  if (prizesEl) prizesEl.textContent = `${prizeSummary} (${totalPrizeCount} ${window.i18n ? window.i18n.t('draw_prizes_unit') : 'total'})`;
   
   const partCount = (lottery.participants && lottery.participants.length) || 0;
-  if (partEl) partEl.textContent = `${partCount} 人已报名`;
+  if (partEl) partEl.textContent = `${partCount} ${window.i18n ? window.i18n.t('draw_registered_suffix') : 'registered'}`;
 
   // Populate Auto Draw Time and Designated Status
   const autoEl = document.getElementById('draw-confirm-autotime');
@@ -2721,18 +2743,18 @@ async function openDrawConfirmModal(id) {
 
   if (autoEl) {
     if (lottery.autoDrawTime) {
-      autoEl.textContent = `${formatBjtDisplay(lottery.autoDrawTime)} (自动开奖)`;
+      autoEl.textContent = `${formatBjtDisplay(lottery.autoDrawTime)} ${window.i18n ? window.i18n.t('draw_auto_draw_suffix') : '(Auto Draw)'}`;
     } else if (lottery.endTime) {
-      autoEl.textContent = `${formatBjtDisplay(lottery.endTime)} (活动结束)`;
+      autoEl.textContent = `${formatBjtDisplay(lottery.endTime)} ${window.i18n ? window.i18n.t('draw_ended_suffix') : '(Campaign Ended)'}`;
     } else {
-      autoEl.textContent = '手动开奖 (Manual)';
+      autoEl.textContent = window.i18n ? window.i18n.t('draw_manual_draw') : 'Manual Draw';
     }
   }
 
   if (desigRow && desigEl) {
     if (lottery.designatedWinners && lottery.designatedWinners.length > 0) {
       desigRow.classList.remove('hidden');
-      desigEl.textContent = `${lottery.designatedWinners.length} 位中奖者已预设`;
+      desigEl.textContent = `${lottery.designatedWinners.length} ${window.i18n ? window.i18n.t('draw_designated_badge') : 'Designated'}`;
     } else {
       desigRow.classList.add('hidden');
       desigEl.textContent = '--';
@@ -2744,7 +2766,7 @@ async function openDrawConfirmModal(id) {
     const res = await fetchDrawApi(`/lotteries/${id}/participants?limit=1000`);
     if (res && res.participants) {
       currentConfirmDrawParticipants = res.participants;
-      if (partEl) partEl.textContent = `${res.total || res.participants.length} 人已报名`;
+      if (partEl) partEl.textContent = `${res.total || res.participants.length} ${window.i18n ? window.i18n.t('draw_registered_suffix') : 'registered'}`;
     } else {
       currentConfirmDrawParticipants = lottery.participants || [];
     }
@@ -2781,7 +2803,7 @@ async function executeRandomDraw(id) {
   const btn = document.getElementById('btn-draw-confirm-random');
   if (btn) {
     btn.disabled = true;
-    btn.innerHTML = '<span>⏳ 正在随机开奖并推送...</span>';
+    btn.innerHTML = `<span>${window.i18n ? window.i18n.t('draw_drawing_broadcasting') : '⏳ Drawing randomly and broadcasting...'}</span>`;
   }
 
   try {
@@ -2793,10 +2815,10 @@ async function executeRandomDraw(id) {
       closeDrawConfirmModal();
       await loadDrawModule();
       const count = (res.winners && res.winners.length) || 0;
-      showToastNotification(`🎉 开奖成功！共抽取 ${count} 位中奖者并已推送到社群。`, 'show');
+      showToastNotification(window.i18n ? window.i18n.t('toast_draw_success') : `🎉 Draw completed! ${count} winner(s) announced to community.`, 'show');
     }
   } catch (err) {
-    alert(`开奖失败: ${err.message}`);
+    alert((window.i18n ? window.i18n.t('alert_draw_failed') : 'Draw failed: ') + err.message);
   } finally {
     if (btn) {
       btn.disabled = false;
@@ -2804,8 +2826,8 @@ async function executeRandomDraw(id) {
         <div style="display: flex; align-items: center; gap: 10px;">
           <span style="font-size: 1.3rem;">⚡</span>
           <div style="text-align: left;">
-            <div>立刻开奖 (全随机)</div>
-            <div style="font-size: 0.76rem; font-weight: normal; opacity: 0.9;">所有奖品全随机自动抽取并公布</div>
+            <div data-i18n="draw_btn_random_now">Draw Now (Full Random)</div>
+            <div style="font-size: 0.76rem; font-weight: normal; opacity: 0.9;" data-i18n="draw_btn_random_now_sub">All prizes randomly drawn and announced instantly.</div>
           </div>
         </div>
         <span style="font-size: 1.1rem; opacity: 0.8;">&rarr;</span>
@@ -2817,7 +2839,7 @@ async function executeRandomDraw(id) {
 function switchToDesignatedDrawView() {
   if (!currentConfirmDrawLottery) return;
   if (!currentConfirmDrawParticipants || currentConfirmDrawParticipants.length === 0) {
-    alert('当前暂无用户参与本次抽奖，无法指定中奖者！');
+    alert(window.i18n ? window.i18n.t('alert_no_participants') : 'No participants yet for this draw, cannot designate winners!');
     return;
   }
 
@@ -2841,12 +2863,12 @@ function switchToDesignatedDrawView() {
   if (currentConfirmDrawLottery.autoDrawTime) {
     if (scheduleBadge) scheduleBadge.textContent = formatBjtDisplay(currentConfirmDrawLottery.autoDrawTime);
     if (timeInputWrap) timeInputWrap.classList.add('hidden');
-    if (scheduleBtn) scheduleBtn.textContent = '⏰ 按照 Auto Draw 时间开奖';
+    if (scheduleBtn) scheduleBtn.textContent = window.i18n ? window.i18n.t('draw_btn_draw_scheduled') : '⏰ Draw on Auto Draw Schedule';
   } else {
-    if (scheduleBadge) scheduleBadge.textContent = '未预设定时时间';
+    if (scheduleBadge) scheduleBadge.textContent = window.i18n ? window.i18n.t('draw_no_scheduled_time') : 'No scheduled time set';
     if (timeInputWrap) timeInputWrap.classList.remove('hidden');
     if (newAutoTimeInput) newAutoTimeInput.value = '';
-    if (scheduleBtn) scheduleBtn.textContent = '⏰ 设置时间并按定时开奖';
+    if (scheduleBtn) scheduleBtn.textContent = window.i18n ? window.i18n.t('draw_set_time_and_schedule') : '⏰ Set Time and Schedule Draw';
   }
 
   // Pre-fill existing designated winners if any
@@ -2922,7 +2944,7 @@ function renderDropdownItems(menu, query = '') {
   if (filtered.length === 0) {
     itemsContainer.innerHTML = `
       <div style="padding: 16px; text-align: center; color: #64748b; font-size: 0.8rem;">
-        未搜索到匹配的参与者
+        ${window.i18n ? window.i18n.t('draw_no_match_participant') : 'No matching participants found'}
       </div>
     `;
     return;
@@ -2939,7 +2961,7 @@ function renderDropdownItems(menu, query = '') {
         <div style="padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); opacity: 0.45; cursor: not-allowed; display: flex; flex-direction: column;">
           <div style="font-size: 0.8rem; color: #94a3b8; font-weight: 500;">
             <span>${escapeHtml(username)}</span>
-            <span style="font-size: 0.72rem; color: #f87171; margin-left: 6px;">(已在其他行指定)</span>
+            <span style="font-size: 0.72rem; color: #f87171; margin-left: 6px;">(${window.i18n ? window.i18n.t('draw_already_assigned') : 'Assigned in another row'})</span>
           </div>
           <div style="font-size: 0.72rem; color: #64748b;">${escapeHtml(nickname)}</div>
         </div>
@@ -2979,9 +3001,9 @@ function openDesignatedPartDropdown(triggerEl, event) {
     menu.style.cssText = 'position: fixed; z-index: 100000; background: #0f172a; border: 1px solid #38bdf8; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.85); width: 280px; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden;';
     menu.innerHTML = `
       <div style="padding: 8px; background: #0b1120; border-bottom: 1px solid #334155; display: flex; gap: 5px; align-items: center;">
-        <input type="text" id="draw-desig-dropdown-quick-search" placeholder="搜索用户名或昵称..." oninput="onDropdownQuickFilter(this.value)" style="flex: 1; min-width: 0; height: 30px; padding: 2px 8px; font-size: 0.76rem; border-radius: 4px; border: 1px solid #334155; background: #0f172a; color: #fff; box-sizing: border-box;" />
-        <button type="button" class="btn btn-secondary btn-xs" onclick="openParticipantPickerModal(activeDesigPartTrigger)" title="展开弹窗搜索" style="padding: 0 8px; height: 30px; font-size: 0.74rem; color: #38bdf8; white-space: nowrap; display: inline-flex; align-items: center; gap: 2px;">
-          ⛶ 展开
+        <input type="text" id="draw-desig-dropdown-quick-search" placeholder="${window.i18n ? window.i18n.t('draw_search_user_or_nickname') : 'Search username or nickname...'}" oninput="onDropdownQuickFilter(this.value)" style="flex: 1; min-width: 0; height: 30px; padding: 2px 8px; font-size: 0.76rem; border-radius: 4px; border: 1px solid #334155; background: #0f172a; color: #fff; box-sizing: border-box;" />
+        <button type="button" class="btn btn-secondary btn-xs" onclick="openParticipantPickerModal(activeDesigPartTrigger)" title="${window.i18n ? window.i18n.t('draw_expand_search_modal') : 'Expand Search'}" style="padding: 0 8px; height: 30px; font-size: 0.74rem; color: #38bdf8; white-space: nowrap; display: inline-flex; align-items: center; gap: 2px;">
+          ⛶ ${window.i18n ? window.i18n.t('draw_btn_expand') : 'Expand'}
         </button>
       </div>
       <div id="draw-desig-dropdown-items" style="max-height: 200px; overflow-y: auto; overflow-x: hidden;"></div>
@@ -3105,7 +3127,7 @@ function doSearchParticipantPicker() {
   if (filtered.length === 0) {
     container.innerHTML = `
       <div style="padding: 30px; text-align: center; color: #64748b; font-size: 0.88rem;">
-        🔍 没有搜索到匹配【${escapeHtml(query)}】的参与者
+        🔍 ${window.i18n ? window.i18n.t('draw_no_match_participant') : 'No participants found matching'} "${escapeHtml(query)}"
       </div>
     `;
     return;
@@ -3130,7 +3152,7 @@ function doSearchParticipantPicker() {
               <span style="font-size: 0.74rem; color: #64748b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(nickname)}</span>
             </div>
           </div>
-          <span style="font-size: 0.74rem; color: #f87171; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); padding: 3px 8px; border-radius: 4px; flex-shrink: 0;">已在其他行指定</span>
+          <span style="font-size: 0.74rem; color: #f87171; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); padding: 3px 8px; border-radius: 4px; flex-shrink: 0;">${window.i18n ? window.i18n.t('draw_already_assigned') : 'Assigned in another row'}</span>
         </div>
       `;
     }
@@ -3150,8 +3172,8 @@ function doSearchParticipantPicker() {
         </div>
         <div>
           ${isCurSelected
-            ? '<span style="font-size: 0.74rem; color: #38bdf8; background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; padding: 3px 10px; border-radius: 4px; font-weight: 600;">当前已选 ✓</span>'
-            : '<button type="button" class="btn btn-secondary btn-xs" style="padding: 3px 10px; font-size: 0.74rem; color: #38bdf8; border-color: rgba(56, 189, 248, 0.35);">选择</button>'
+            ? `<span style="font-size: 0.74rem; color: #38bdf8; background: rgba(56, 189, 248, 0.2); border: 1px solid #38bdf8; padding: 3px 10px; border-radius: 4px; font-weight: 600;">${window.i18n ? window.i18n.t("draw_currently_selected") : "Selected"} ✓</span>`
+            : `<button type="button" class="btn btn-secondary btn-xs" style="padding: 3px 10px; font-size: 0.74rem; color: #38bdf8; border-color: rgba(56, 189, 248, 0.35);">${window.i18n ? window.i18n.t("draw_btn_select") : "Select"}</button>`
           }
         </div>
       </div>
@@ -3170,7 +3192,7 @@ function addDesignatedWinnerRow(preSelectPartId, preSelectPrizeName) {
 
   // 1. Quota limit check: If rows reached total prize count, pop up alert!
   if (existingRows.length >= totalPrizeCount) {
-    alert('已达总奖品数上限，不可再添加。');
+    alert(window.i18n ? window.i18n.t('draw_alert_limit_reached') : 'Prize quota limit reached, cannot add more.');
     return;
   }
 
@@ -3189,7 +3211,7 @@ function addDesignatedWinnerRow(preSelectPartId, preSelectPrizeName) {
   // Check if any prize still has quota
   const hasAvailablePrize = prizes.some(p => (assignedByPrize[p.name] || 0) < p.count);
   if (!hasAvailablePrize && !preSelectPrizeName) {
-    alert('已达总奖品数上限，不可再添加。');
+    alert(window.i18n ? window.i18n.t('draw_alert_limit_reached') : 'Prize quota limit reached, cannot add more.');
     return;
   }
 
@@ -3197,7 +3219,7 @@ function addDesignatedWinnerRow(preSelectPartId, preSelectPrizeName) {
   const allParticipants = currentConfirmDrawParticipants || [];
   const unassignedParts = allParticipants.filter(p => !selectedPartIds.has(String(p.id || p.chatId)));
   if (unassignedParts.length === 0 && !preSelectPartId && allParticipants.length > 0) {
-    alert('所有参与者均已指定，不可再添加。');
+    alert(window.i18n ? window.i18n.t('draw_alert_all_assigned') : 'All participants have been designated, cannot add more.');
     return;
   }
 
@@ -3220,7 +3242,7 @@ function addDesignatedWinnerRow(preSelectPartId, preSelectPrizeName) {
     targetPrizeName = availPrize ? availPrize.name : (prizes[0] ? prizes[0].name : '');
   }
 
-  // 5. Build prizes options (Display single prize name without misleading total '(2份)')
+  // 5. Build prizes options
   const prizeOptions = prizes.map(p => {
     const isSelected = String(p.name) === String(targetPrizeName);
     return `<option value="${escapeHtml(p.name)}" ${isSelected ? 'selected' : ''}>${escapeHtml(p.name)}</option>`;
@@ -3230,30 +3252,30 @@ function addDesignatedWinnerRow(preSelectPartId, preSelectPrizeName) {
   row.className = 'draw-designated-row';
   row.style.cssText = 'display: flex; gap: 8px; align-items: center; background: #0b1120; border: 1px solid #334155; border-radius: 8px; padding: 6px 8px; width: 100%; box-sizing: border-box;';
   row.innerHTML = `
-    <!-- Column 1: 获奖者名字列 (固定长度 260px，稍长一些) -->
+    <!-- Column 1: Winner Name (260px) -->
     <div class="draw-desig-part-col" style="position: relative; width: 260px; min-width: 260px; max-width: 260px; flex: 0 0 260px; display: flex; gap: 4px; align-items: center;">
       <input type="hidden" class="draw-desig-part-select" value="${escapeHtml(String(targetPartId))}" />
-      <div class="draw-desig-part-trigger" onclick="openDesignatedPartDropdown(this, event)" style="flex: 1; min-width: 0; height: 42px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 3px 8px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; box-sizing: border-box;" title="点击选择或搜索中奖者">
+      <div class="draw-desig-part-trigger" onclick="openDesignatedPartDropdown(this, event)" style="flex: 1; min-width: 0; height: 42px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 3px 8px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; box-sizing: border-box;" title="${window.i18n ? window.i18n.t('draw_click_select_winner') : 'Click to select or search winner'}">
         <div style="display: flex; flex-direction: column; overflow: hidden; min-width: 0; flex: 1; text-align: left;">
           <span class="desig-part-uname" style="font-size: 0.82rem; font-weight: 600; color: #fff; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(targetUname)}</span>
           <span class="desig-part-nick" style="font-size: 0.72rem; color: #94a3b8; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(targetNick)}</span>
         </div>
         <span style="font-size: 0.65rem; color: #94a3b8; margin-left: 4px; flex-shrink: 0;">▼</span>
       </div>
-      <button type="button" class="btn btn-secondary btn-xs" onclick="openParticipantPickerModal(this)" style="width: 32px; min-width: 32px; max-width: 32px; height: 42px; flex: 0 0 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; border-radius: 6px; cursor: pointer; font-size: 0.85rem;" title="展开搜索弹窗">
+      <button type="button" class="btn btn-secondary btn-xs" onclick="openParticipantPickerModal(this)" style="width: 32px; min-width: 32px; max-width: 32px; height: 42px; flex: 0 0 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; border-radius: 6px; cursor: pointer; font-size: 0.85rem;" title="Search" data-i18n-title="draw_btn_open_search">
         🔍
       </button>
     </div>
 
-    <!-- Column 2: 奖品列 (固定长度 140px) -->
+    <!-- Column 2: Prize (140px) -->
     <div class="draw-desig-prize-col" style="width: 140px; min-width: 140px; max-width: 140px; flex: 0 0 140px;">
       <select class="draw-desig-prize-select input-text" style="width: 100%; height: 42px; padding: 6px 8px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: #fbbf24; font-size: 0.82rem; font-weight: 600; box-sizing: border-box;" onchange="updateDesignatedCounters()">
         ${prizeOptions}
       </select>
     </div>
 
-    <!-- Column 3: 移除按钮 (固定长度 32px) -->
-    <button type="button" class="btn btn-secondary btn-xs" onclick="removeDesignatedWinnerRow(this)" style="width: 32px; min-width: 32px; max-width: 32px; height: 42px; flex: 0 0 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; color: #f87171; border-radius: 6px; border: 1px solid rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.08); font-size: 1.15rem; line-height: 1;" title="移除">
+    <!-- Column 3: Remove (32px) -->
+    <button type="button" class="btn btn-secondary btn-xs" onclick="removeDesignatedWinnerRow(this)" style="width: 32px; min-width: 32px; max-width: 32px; height: 42px; flex: 0 0 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; color: #f87171; border-radius: 6px; border: 1px solid rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.08); font-size: 1.15rem; line-height: 1;" title="Remove" data-i18n-title="draw_btn_remove">
       &times;
     </button>
   `;
@@ -3312,7 +3334,7 @@ function updateDesignatedCounters() {
       const bg = isOver ? 'rgba(239, 68, 68, 0.18)' : (isFull ? 'rgba(34, 197, 94, 0.15)' : 'rgba(251, 191, 36, 0.12)');
       const border = isOver ? 'rgba(239, 68, 68, 0.45)' : (isFull ? 'rgba(34, 197, 94, 0.4)' : 'rgba(251, 191, 36, 0.35)');
       const color = isOver ? '#f87171' : (isFull ? '#4ade80' : '#fbbf24');
-      const statusText = isOver ? `超额 +${assigned - p.count}` : (isFull ? '已选满' : `剩 ${p.count - assigned} 份`);
+      const statusText = isOver ? `${window.i18n ? window.i18n.t('draw_status_over') : 'Over'} +${assigned - p.count}` : (isFull ? (window.i18n ? window.i18n.t('draw_status_full') : 'Full') : `${window.i18n ? window.i18n.t('draw_status_remaining') : 'Left'} ${p.count - assigned}`);
       return `
         <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.78rem; font-weight: 600; padding: 4px 10px; border-radius: 6px; background: ${bg}; border: 1px solid ${border}; color: ${color};">
           <span>🎁 ${escapeHtml(p.name)}:</span>
@@ -3340,7 +3362,7 @@ function updateDesignatedCounters() {
 
         if (remForThisRow <= 0) {
           opt.disabled = true;
-          opt.textContent = `${prName} (已选满)`;
+          opt.textContent = `${prName} (${window.i18n ? window.i18n.t('draw_status_full') : 'Full'})`;
         } else {
           opt.disabled = false;
           opt.textContent = `${prName}`;
@@ -3363,13 +3385,13 @@ function updateDesignatedCounters() {
   if (assignedEl) assignedEl.textContent = assignedCount;
   if (remainingEl) remainingEl.textContent = remainingCount;
 
-  // 5. Control "➕ 添加指定获奖者" button
+  // 5. Control Add Designated Winner button
   const allPrizesFilled = prizes.every(p => (assignedByPrize[p.name] || 0) >= p.count);
   const allParticipantsAssigned = currentConfirmDrawParticipants && assignedCount >= currentConfirmDrawParticipants.length;
   const isLimitReached = assignedCount >= totalPrizeCount || allPrizesFilled || allParticipantsAssigned;
 
   if (addBtn) {
-    // Keep clickable so clicking triggers alert('已达总奖品数上限，不可再添加。')
+    // Keep clickable so clicking triggers alert if quota exceeded
     addBtn.disabled = false;
     if (isLimitReached) {
       addBtn.style.opacity = '0.65';
@@ -3384,9 +3406,9 @@ function updateDesignatedCounters() {
     if (isLimitReached) {
       limitTip.classList.remove('hidden');
       if (allPrizesFilled || assignedCount >= totalPrizeCount) {
-        limitTip.textContent = '已达总奖品数上限';
+        limitTip.textContent = window.i18n ? window.i18n.t('draw_limit_reached') : 'Prize quota limit reached';
       } else if (allParticipantsAssigned) {
-        limitTip.textContent = '所有参与者均已指定完毕';
+        limitTip.textContent = window.i18n ? window.i18n.t('draw_all_participants_done') : 'All participants have been designated';
       }
     } else {
       limitTip.classList.add('hidden');
@@ -3419,14 +3441,14 @@ async function saveAndScheduleDesignatedDraw() {
     if (!partId || !prizeName) continue;
 
     if (selectedPartIds.has(partId)) {
-      alert('⚠️ 参与者已被重复指定，每位用户在同一场抽奖中只能中奖一次！');
+      alert(window.i18n ? window.i18n.t('draw_alert_duplicate_user') : '⚠️ Duplicate winner assigned! A user can only win once per draw.');
       return;
     }
     selectedPartIds.add(partId);
 
     currentPrizeAssigned[prizeName] = (currentPrizeAssigned[prizeName] || 0) + 1;
     if (currentPrizeAssigned[prizeName] > (prizeCounts[prizeName] || 0)) {
-      alert(`⚠️ 奖品【${prizeName}】总数仅有 ${prizeCounts[prizeName]} 份，当前指定了 ${currentPrizeAssigned[prizeName]} 人，已超出奖品数量上限！`);
+      alert(window.i18n ? window.i18n.t('draw_alert_prize_quota_exceeded') : `⚠️ Prize quota exceeded for "${prizeName}"!`);
       return;
     }
 
@@ -3440,7 +3462,7 @@ async function saveAndScheduleDesignatedDraw() {
   }
 
   if (!autoDrawTime || !autoDrawTime.trim()) {
-    alert('⚠️ 按照定时开奖需要设置自动开奖时间，请在上方选择开奖时间！');
+    alert(window.i18n ? window.i18n.t('draw_alert_need_autodraw_time') : '⚠️ Auto draw time must be configured for scheduled draws! Please select above.');
     const wrap = document.getElementById('draw-desig-time-input-wrap');
     if (wrap) wrap.classList.remove('hidden');
     if (newTimeInput) newTimeInput.focus();
@@ -3450,7 +3472,7 @@ async function saveAndScheduleDesignatedDraw() {
   const btn = document.getElementById('btn-save-schedule-designated');
   if (btn) {
     btn.disabled = true;
-    btn.textContent = '保存中...';
+    btn.textContent = window.i18n ? window.i18n.t('draw_btn_saving') : 'Saving...';
   }
 
   try {
@@ -3463,17 +3485,17 @@ async function saveAndScheduleDesignatedDraw() {
       await loadDrawModule();
       const timeFormatted = formatBjtDisplay(autoDrawTime);
       if (designatedWinners.length > 0) {
-        showToastNotification(`✅ 已成功保存指定获奖者（共 ${designatedWinners.length} 人）！将在自动开奖时间（${timeFormatted}）自动开奖并公布，无需再次人工操作。`, 'show');
+        showToastNotification(window.i18n ? window.i18n.t('draw_toast_save_success') : `✅ Successfully saved ${designatedWinners.length} designated winner(s)! Will auto draw at ${timeFormatted}.`, 'show');
       } else {
-        showToastNotification(`✅ 已保存纯随机开奖配置！将在自动开奖时间（${timeFormatted}）自动全随机开奖并公布。`, 'show');
+        showToastNotification(window.i18n ? window.i18n.t('draw_toast_random_saved') : `✅ Saved random draw configuration! Will auto draw at ${timeFormatted}.`, 'show');
       }
     }
   } catch (err) {
-    alert(`保存失败: ${err.message}`);
+    alert((window.i18n ? window.i18n.t('draw_alert_save_failed') : 'Save failed: ') + err.message);
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.textContent = '⏰ 按照 Auto Draw 时间开奖';
+      btn.textContent = window.i18n ? window.i18n.t('draw_btn_draw_scheduled') : '⏰ Draw on Auto Draw Schedule';
     }
   }
 }
@@ -3503,14 +3525,14 @@ async function executeDesignatedDraw() {
     if (!partId || !prizeName) continue;
 
     if (selectedPartIds.has(partId)) {
-      alert(`⚠️ 参与者已被重复指定，每位用户在同一场抽奖中只能中奖一次！`);
+      alert(window.i18n ? window.i18n.t('draw_alert_duplicate_user') : '⚠️ Duplicate winner assigned! A user can only win once per draw.');
       return;
     }
     selectedPartIds.add(partId);
 
     currentPrizeAssigned[prizeName] = (currentPrizeAssigned[prizeName] || 0) + 1;
     if (currentPrizeAssigned[prizeName] > (prizeCounts[prizeName] || 0)) {
-      alert(`⚠️ 奖品【${prizeName}】总数仅有 ${prizeCounts[prizeName]} 份，当前指定了 ${currentPrizeAssigned[prizeName]} 人，已超出奖品数量上限！`);
+      alert(window.i18n ? window.i18n.t('draw_alert_prize_quota_exceeded') : `⚠️ Prize quota exceeded for "${prizeName}"!`);
       return;
     }
 
@@ -3520,7 +3542,7 @@ async function executeDesignatedDraw() {
   const btn = document.getElementById('btn-execute-designated-draw');
   if (btn) {
     btn.disabled = true;
-    btn.textContent = '正在开奖...';
+    btn.textContent = window.i18n ? window.i18n.t('draw_btn_drawing') : 'Drawing...';
   }
 
   try {
@@ -3532,14 +3554,14 @@ async function executeDesignatedDraw() {
       closeDrawConfirmModal();
       await loadDrawModule();
       const count = (res.winners && res.winners.length) || 0;
-      showToastNotification(`🎉 开奖成功！指定 ${designatedWinners.length} 人，随机抽取 ${count - designatedWinners.length} 人，已推送到社群。`, 'show');
+      showToastNotification(window.i18n ? window.i18n.t('toast_draw_success') : `🎉 Draw successful! Designated: ${designatedWinners.length}, Random: ${count - designatedWinners.length}.`, 'show');
     }
   } catch (err) {
-    alert(`开奖失败: ${err.message}`);
+    alert((window.i18n ? window.i18n.t('alert_draw_failed') : 'Draw failed: ') + err.message);
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.textContent = '⚡ 立刻开奖';
+      btn.textContent = window.i18n ? window.i18n.t('draw_btn_draw_now_instant') : '⚡ Draw Now';
     }
   }
 }
@@ -3820,7 +3842,7 @@ async function testDrawBotPing() {
   } catch (err) {
     let msg = err.message;
     if (msg === 'Failed to fetch') {
-      msg = '后台服务连接失败 (Failed to fetch)。请确认 Node.js 后台服务正在运行，且端口 3200 正常监听。';
+      msg = window.i18n ? window.i18n.t('draw_server_conn_failed') : 'Failed to connect to backend service (Failed to fetch). Please check that the server is running.';
     }
     alert(`Ping failed: ${msg}`);
   }

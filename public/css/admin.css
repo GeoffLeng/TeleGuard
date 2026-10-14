@@ -159,6 +159,7 @@ body {
   justify-content: center;
   min-height: 100vh;
   padding: 20px;
+  position: relative;
 }
 
 .login-card {
@@ -1129,3 +1130,41 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
   color: #a5b4fc;
   border: 1px solid rgba(129, 140, 248, 0.3);
 }
+
+/* Language Switcher Button (Cyber Dark Pill) */
+.lang-switch-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #38bdf8;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(8px);
+  user-select: none;
+}
+
+.lang-switch-btn:hover {
+  background: rgba(56, 189, 248, 0.18);
+  border-color: rgba(56, 189, 248, 0.65);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
+  transform: translateY(-1px);
+}
+
+.lang-switch-btn:active {
+  transform: translateY(0) scale(0.97);
+}
+
+/* Language switch on Login screen */
+.login-lang-switch-wrapper {
+  position: absolute;
+  top: 24px;
+  right: 28px;
+  z-index: 100;
+}
+

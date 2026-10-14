@@ -12,7 +12,8 @@
   <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
   <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="css/admin.css?v=3.1">
+  <script src="js/i18n.js"></script>
+  <link rel="stylesheet" href="css/admin.css?v=3.3">
   <style>
     /* Glowing Blue Date Picker Calendar Icon */
     input[type="date"]::-webkit-calendar-picker-indicator,
@@ -81,33 +82,41 @@
 <body>
   <!-- Login Screen -->
   <div id="login-container" class="login-container">
+    <!-- Top-Right Language Switcher (Login Screen) -->
+    <div class="login-lang-switch-wrapper" id="login-lang-switch-wrapper">
+      <button class="lang-switch-btn" onclick="window.i18n.toggle()" title="Switch Language">
+        <span>🌐</span>
+        <span class="lang-switch-label">English</span>
+      </button>
+    </div>
+
     <div class="login-card">
-      <h2>Admin Login</h2>
-      <p>Please log in using one of the methods below</p>
+      <h2 data-i18n="login_title">Admin Login</h2>
+      <p data-i18n="login_subtitle">Please log in using one of the methods below</p>
       
       <div id="password-login-section">
         <form id="login-form">
           <div class="input-group">
-            <input type="password" id="admin-pass" placeholder="Admin Password" required />
+            <input type="password" id="admin-pass" placeholder="Admin Password" data-i18n-placeholder="login_pass_placeholder" required />
           </div>
-          <button type="submit" class="btn btn-primary" style="width: 100%;">Login with Password</button>
-          <p id="login-error" class="error-msg hidden">Incorrect password, please try again!</p>
+          <button type="submit" class="btn btn-primary" style="width: 100%;" data-i18n="login_pass_btn">Login with Password</button>
+          <p id="login-error" class="error-msg hidden" data-i18n="login_error">Incorrect password, please try again!</p>
         </form>
       </div>
 
       <div class="login-divider">
-        <span>or</span>
+        <span data-i18n="or">or</span>
       </div>
 
       <div id="telegram-login-section">
         <button id="btn-tg-login" class="btn btn-tg">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle;"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
-          Login via Telegram
+          <span data-i18n="login_tg_btn">Login via Telegram</span>
         </button>
         
         <div id="tg-auth-qr-container" class="hidden" style="margin-top: 20px; text-align: center;">
           <div id="tg-auth-instruction-top" style="font-size: 14px; color: var(--text-primary); margin-bottom: 12px; line-height: 1.5; font-weight: 500;">
-            请在 Telegram 打开 <span id="tg-bot-username-display" style="color: #248bf2; font-weight: bold;">@Bot</span>，然后发送以下验证码到 Bot 即可登录：
+            <span data-i18n="login_tg_step1">Please open @Bot on Telegram and send the verification code below to login:</span>
           </div>
           
           <div id="tg-auth-code-wrapper" style="margin: 15px 0 20px 0;">
@@ -115,12 +124,12 @@
           </div>
           
           <div id="tg-auth-instruction-bottom" style="font-size: 13px; color: var(--text-secondary); margin-bottom: 10px;">
-            你也可以点击以下按钮去验证：
+            <span data-i18n="login_tg_step2">Or click the button below to verify directly:</span>
           </div>
           
           <a id="lnk-tg-bot" href="#" target="_blank" class="btn btn-info btn-sm" style="display: inline-flex; width: 100%; justify-content: center; align-items: center; padding: 10px 0; font-weight: 600; border-radius: 8px;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
-            去 Telegram 验证
+            <span data-i18n="login_tg_verify_btn">Verify on Telegram</span>
           </a>
         </div>
       </div>
@@ -136,27 +145,31 @@
         <h1>TeleGuard Admin Panel</h1>
       </div>
       <div style="display: flex; align-items: center; gap: 12px;">
-        <button class="btn btn-danger btn-sm" onclick="logout()">Logout</button>
+        <button class="lang-switch-btn" onclick="window.i18n.toggle()" title="Switch Language">
+          <span>🌐</span>
+          <span class="lang-switch-label">English</span>
+        </button>
+        <button class="btn btn-danger btn-sm" onclick="logout()" data-i18n="logout">Logout</button>
       </div>
     </header>
 
     <!-- Global Module Selector -->
     <div class="global-module-selector">
-      <button id="btn-module-community" class="module-tab active" onclick="switchModule('community')">Community Management</button>
-      <button id="btn-module-draw" class="module-tab" onclick="switchModule('draw')">Lucky Draw</button>
+      <button id="btn-module-community" class="module-tab active" onclick="switchModule('community')" data-i18n="mod_community">Community Management</button>
+      <button id="btn-module-draw" class="module-tab" onclick="switchModule('draw')" data-i18n="mod_draw">Lucky Draw</button>
     </div>
 
     <div id="module-community" class="module-content">
       <div class="dashboard-layout">
       <!-- Sidebar Navigation -->
       <aside class="dashboard-sidebar">
-        <button id="nav-settings" class="sidebar-btn active" onclick="switchSection('settings')">Rules & Styling</button>
-        <button id="nav-users" class="sidebar-btn" onclick="switchSection('users')">User Management</button>
-        <button id="nav-history" class="sidebar-btn" onclick="switchSection('history')">Leaderboard</button>
-        <button id="nav-commands" class="sidebar-btn" onclick="switchSection('commands')">Command Settings</button>
-        <button id="nav-spam" class="sidebar-btn" onclick="switchSection('spam')">Safety & Spam</button>
-        <button id="nav-captcha" class="sidebar-btn" onclick="switchSection('captcha')">Group Captcha</button>
-        <button id="nav-admin-logs" class="sidebar-btn" onclick="switchSection('admin-logs')">Recent Actions</button>
+        <button id="nav-settings" class="sidebar-btn active" onclick="switchSection('settings')" data-i18n="nav_rules">Rules & Styling</button>
+        <button id="nav-users" class="sidebar-btn" onclick="switchSection('users')" data-i18n="nav_users">User Management</button>
+        <button id="nav-history" class="sidebar-btn" onclick="switchSection('history')" data-i18n="nav_history">Leaderboard</button>
+        <button id="nav-commands" class="sidebar-btn" onclick="switchSection('commands')" data-i18n="nav_commands">Command Settings</button>
+        <button id="nav-spam" class="sidebar-btn" onclick="switchSection('spam')" data-i18n="nav_spam">Safety & Spam</button>
+        <button id="nav-captcha" class="sidebar-btn" onclick="switchSection('captcha')" data-i18n="nav_captcha">Group Captcha</button>
+        <button id="nav-admin-logs" class="sidebar-btn" onclick="switchSection('admin-logs')" data-i18n="nav_actions">Recent Actions</button>
       </aside>
 
       <!-- Main Contents -->
@@ -571,19 +584,19 @@
 
                 <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-bottom: 0; font-weight: 600; font-size: 1.05rem;">
                   <input type="checkbox" id="link_intercept_enabled" style="width: auto;" />
-                  开启群组链接白名单拦截器 (Enable Link Whitelist Interceptor)
+                  <span data-i18n="spam_link_interceptor">Enable Link Whitelist Interceptor</span>
                 </label>
               </div>
 
               <!-- Whitelisted domains -->
               <div class="form-group full-width" style="margin-bottom: 25px;">
-                <label style="font-weight: 600;">链接白名单域名 (Whitelisted Domains - 每行一个，支持通配符如 <code>*.x.com</code>，覆盖 X/Twitter, Reddit, Facebook 等主域名及短链接)</label>
+                <label style="font-weight: 600;" data-i18n="spam_whitelist_domains">Whitelisted Domains (One per line, wildcards like *.x.com supported):</label>
                 <textarea id="whitelist_domains" rows="5" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background-color: var(--input-bg); color: var(--text-color); font-family: inherit; resize: vertical;" placeholder="cashbox.info&#10;t.me&#10;*.x.com&#10;*.t.co&#10;*.reddit.com&#10;*.redd.it&#10;*.facebook.com&#10;*.fb.me&#10;*.fb.watch"></textarea>
               </div>
 
               <!-- Ignored Spam Topic IDs -->
               <div class="form-group full-width" style="margin-bottom: 25px;">
-                <label style="font-weight: 600;">免过滤主题 ID 列表 (Ignored Spam Topic IDs - 多个用逗号或换行隔开，在这些主题下发言绝对不被反垃圾拦截)</label>
+                <label style="font-weight: 600;" data-i18n="spam_ignored_topics">Ignored Spam Topic IDs (Comma or newline separated; messages in these topics bypass filters):</label>
                 <textarea id="ignored_spam_topic_ids" rows="2" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background-color: var(--input-bg); color: var(--text-color); font-family: inherit; resize: vertical;" placeholder="123, 456"></textarea>
               </div>
 
@@ -593,23 +606,23 @@
                   <div style="flex: 1; min-width: 250px;">
                     <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; font-size: 1rem;">
                       <input type="checkbox" id="rtlo_auto_ban" style="width: auto;" />
-                      1. 拦截 RTLO 字符 (RTLO Characters \u202e)
+                      <span data-i18n="rule_rtlo_title">1. Block RTLO Characters (\u202e)</span>
                     </label>
                     <p style="color: var(--text-secondary); margin: 6px 0 0 24px; font-size: 0.82rem; line-height: 1.4;">
-                      检测文本中是否包含 Right-to-Left Override 字符。通常用于欺骗用户点击恶意链接（如反转域名显示）。
+                      <span data-i18n="rule_rtlo_desc">Detect Right-to-Left Override characters often used to spoof deceptive URLs.</span>
                     </p>
                   </div>
                   <div style="display: flex; align-items: center; gap: 10px;">
                     <div style="display: flex; flex-direction: column; gap: 4px;">
-                      <span style="font-size: 0.75rem; color: var(--text-secondary);">拦截动作</span>
+                      <span style="font-size: 0.75rem; color: var(--text-secondary);" data-i18n="rule_action_label">Action</span>
                       <select id="rtlo_action" style="padding: 6px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); font-size: 0.85rem;">
-                        <option value="ban">拉黑 (Ban)</option>
-                        <option value="mute">禁言 (Mute)</option>
-                        <option value="delete_only">仅删消息 (Delete Only)</option>
+                        <option value="ban" data-i18n="action_ban">Ban</option>
+                        <option value="mute" data-i18n="action_mute">Mute</option>
+                        <option value="delete_only" data-i18n="action_delete_only">Delete Only</option>
                       </select>
                     </div>
                     <div id="rtlo_duration_container" style="display: none; flex-direction: column; gap: 4px;">
-                      <span style="font-size: 0.75rem; color: var(--text-secondary);">禁言时长 (分钟)</span>
+                      <span style="font-size: 0.75rem; color: var(--text-secondary);" data-i18n="rule_duration_label">Duration (mins)</span>
                       <input type="number" id="rtlo_mute_duration" min="1" placeholder="60" style="padding: 6px; width: 90px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); font-size: 0.85rem;" />
                     </div>
                   </div>
@@ -622,23 +635,23 @@
                   <div style="flex: 1; min-width: 250px;">
                     <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; font-size: 1rem;">
                       <input type="checkbox" id="new_user_link_auto_ban" style="width: auto;" />
-                      2. 新成员链接限制 (New User Link Spam)
+                      <span data-i18n="rule_new_user_title">2. Restrict Links from New Members</span>
                     </label>
                     <p style="color: var(--text-secondary); margin: 6px 0 0 24px; font-size: 0.82rem; line-height: 1.4;">
-                      限制群内新用户（Level 1 且 XP &lt; 50）发送外部链接，防止发广告引流。
+                      <span data-i18n="rule_new_user_desc">Restrict new group members (Level 1 & XP &lt; 50) from sending external links.</span>
                     </p>
                   </div>
                   <div style="display: flex; align-items: center; gap: 10px;">
                     <div style="display: flex; flex-direction: column; gap: 4px;">
-                      <span style="font-size: 0.75rem; color: var(--text-secondary);">拦截动作</span>
+                      <span style="font-size: 0.75rem; color: var(--text-secondary);" data-i18n="rule_action_label">Action</span>
                       <select id="new_user_link_action" style="padding: 6px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); font-size: 0.85rem;">
-                        <option value="ban">拉黑 (Ban)</option>
-                        <option value="mute">禁言 (Mute)</option>
-                        <option value="delete_only">仅删消息 (Delete Only)</option>
+                        <option value="ban" data-i18n="action_ban">Ban</option>
+                        <option value="mute" data-i18n="action_mute">Mute</option>
+                        <option value="delete_only" data-i18n="action_delete_only">Delete Only</option>
                       </select>
                     </div>
                     <div id="new_user_link_duration_container" style="display: none; flex-direction: column; gap: 4px;">
-                      <span style="font-size: 0.75rem; color: var(--text-secondary);">禁言时长 (分钟)</span>
+                      <span style="font-size: 0.75rem; color: var(--text-secondary);" data-i18n="rule_duration_label">Duration (mins)</span>
                       <input type="number" id="new_user_link_mute_duration" min="1" placeholder="60" style="padding: 6px; width: 90px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); font-size: 0.85rem;" />
                     </div>
                   </div>
@@ -651,23 +664,23 @@
                   <div style="flex: 1; min-width: 250px;">
                     <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; font-size: 1rem;">
                       <input type="checkbox" id="cas_api_enabled" style="width: auto;" />
-                      3. Combot CAS 全局黑名单 (Combot CAS Global Check)
+                      <span data-i18n="rule_cas_title">3. Combot CAS Global Blacklist</span>
                     </label>
                     <p style="color: var(--text-secondary); margin: 6px 0 0 24px; font-size: 0.82rem; line-height: 1.4;">
-                      对接 Combot 全局数据库。当用户发送首条消息时，检测是否已被 Telegram 联盟黑名单拉黑。
+                      <span data-i18n="rule_cas_desc">Query Combot CAS global database on first user message to block known spammers.</span>
                     </p>
                   </div>
                   <div style="display: flex; align-items: center; gap: 10px;">
                     <div style="display: flex; flex-direction: column; gap: 4px;">
-                      <span style="font-size: 0.75rem; color: var(--text-secondary);">拦截动作</span>
+                      <span style="font-size: 0.75rem; color: var(--text-secondary);" data-i18n="rule_action_label">Action</span>
                       <select id="cas_action" style="padding: 6px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); font-size: 0.85rem;">
-                        <option value="ban">拉黑 (Ban)</option>
-                        <option value="mute">禁言 (Mute)</option>
-                        <option value="delete_only">仅删消息 (Delete Only)</option>
+                        <option value="ban" data-i18n="action_ban">Ban</option>
+                        <option value="mute" data-i18n="action_mute">Mute</option>
+                        <option value="delete_only" data-i18n="action_delete_only">Delete Only</option>
                       </select>
                     </div>
                     <div id="cas_duration_container" style="display: none; flex-direction: column; gap: 4px;">
-                      <span style="font-size: 0.75rem; color: var(--text-secondary);">禁言时长 (分钟)</span>
+                      <span style="font-size: 0.75rem; color: var(--text-secondary);" data-i18n="rule_duration_label">Duration (mins)</span>
                       <input type="number" id="cas_mute_duration" min="1" placeholder="60" style="padding: 6px; width: 90px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); font-size: 0.85rem;" />
                     </div>
                   </div>
@@ -680,23 +693,23 @@
                   <div style="flex: 1; min-width: 250px;">
                     <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; font-size: 1rem;">
                       <input type="checkbox" id="block_inline_keyboards" style="width: auto;" />
-                      4. 限制 Inline 键盘 (Block Inline Keyboards - Non-Admins)
+                      <span data-i18n="rule_inline_keyboard_title">4. Block Inline Keyboards (Non-Admins)</span>
                     </label>
                     <p style="color: var(--text-secondary); margin: 6px 0 0 24px; font-size: 0.82rem; line-height: 1.4;">
-                      拦截非管理员发送的带有自定义内联按钮的消息，防止群发控制或脚本引流。
+                      <span data-i18n="rule_inline_keyboard_desc">Block messages with custom inline button keyboards sent by non-administrators.</span>
                     </p>
                   </div>
                   <div style="display: flex; align-items: center; gap: 10px;">
                     <div style="display: flex; flex-direction: column; gap: 4px;">
-                      <span style="font-size: 0.75rem; color: var(--text-secondary);">拦截动作</span>
+                      <span style="font-size: 0.75rem; color: var(--text-secondary);" data-i18n="rule_action_label">Action</span>
                       <select id="block_inline_keyboards_action" style="padding: 6px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); font-size: 0.85rem;">
-                        <option value="ban">拉黑 (Ban)</option>
-                        <option value="mute">禁言 (Mute)</option>
-                        <option value="delete_only">仅删消息 (Delete Only)</option>
+                        <option value="ban" data-i18n="action_ban">Ban</option>
+                        <option value="mute" data-i18n="action_mute">Mute</option>
+                        <option value="delete_only" data-i18n="action_delete_only">Delete Only</option>
                       </select>
                     </div>
                     <div id="block_inline_keyboards_duration_container" style="display: none; flex-direction: column; gap: 4px;">
-                      <span style="font-size: 0.75rem; color: var(--text-secondary);">禁言时长 (分钟)</span>
+                      <span style="font-size: 0.75rem; color: var(--text-secondary);" data-i18n="rule_duration_label">Duration (mins)</span>
                       <input type="number" id="block_inline_keyboards_mute_duration" min="1" placeholder="60" style="padding: 6px; width: 90px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); font-size: 0.85rem;" />
                     </div>
                   </div>
@@ -709,23 +722,23 @@
                   <div style="flex: 1; min-width: 250px;">
                     <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; font-size: 1rem;">
                       <input type="checkbox" id="block_inline_bots" style="width: auto;" />
-                      5. 限制 Inline 机器人 (Block Messages via Inline Bots)
+                      <span data-i18n="rule_inline_bot_title">5. Block Messages via Inline Bots</span>
                     </label>
                     <p style="color: var(--text-secondary); margin: 6px 0 0 24px; font-size: 0.82rem; line-height: 1.4;">
-                      拦截通过 Inline 方式（如输入 <code>@some_bot</code>）发出的消息，支持在下方配置豁免白名单。
+                      <span data-i18n="rule_inline_bot_desc">Block messages sent via inline bots (e.g. @some_bot). Whitelisted bots allowed below.</span>
                     </p>
                   </div>
                   <div style="display: flex; align-items: center; gap: 10px;">
                     <div style="display: flex; flex-direction: column; gap: 4px;">
-                      <span style="font-size: 0.75rem; color: var(--text-secondary);">拦截动作</span>
+                      <span style="font-size: 0.75rem; color: var(--text-secondary);" data-i18n="rule_action_label">Action</span>
                       <select id="block_inline_bots_action" style="padding: 6px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); font-size: 0.85rem;">
-                        <option value="delete_only">仅删消息 (Delete Only)</option>
-                        <option value="mute">禁言 (Mute)</option>
-                        <option value="ban">拉黑 (Ban)</option>
+                        <option value="delete_only" data-i18n="action_delete_only">Delete Only</option>
+                        <option value="mute" data-i18n="action_mute">Mute</option>
+                        <option value="ban" data-i18n="action_ban">Ban</option>
                       </select>
                     </div>
                     <div id="block_inline_bots_duration_container" style="display: none; flex-direction: column; gap: 4px;">
-                      <span style="font-size: 0.75rem; color: var(--text-secondary);">禁言时长 (分钟)</span>
+                      <span style="font-size: 0.75rem; color: var(--text-secondary);" data-i18n="rule_duration_label">Duration (mins)</span>
                       <input type="number" id="block_inline_bots_mute_duration" min="1" placeholder="60" style="padding: 6px; width: 90px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); font-size: 0.85rem;" />
                     </div>
                   </div>
@@ -734,10 +747,10 @@
 
               <!-- Whitelisted Inline Bots (Shown directly below the Inline Bot rule card) -->
               <div class="form-group full-width" style="margin-bottom: 20px; padding-left: 20px;">
-                <label style="font-weight: 600;">内联机器人白名单 (Whitelisted Inline Bots - 逗号分隔，如 <code>gif, vote, like, poll</code>)</label>
+                <label style="font-weight: 600;" data-i18n="rule_inline_bot_whitelist">Whitelisted Inline Bots (Comma separated, e.g. gif, vote, like, poll):</label>
                 <input type="text" id="allowed_inline_bots" placeholder="e.g. gif, vote, like, poll" />
                 <p style="color: var(--text-secondary); margin: 6px 0 0 4px; font-size: 0.8rem; line-height: 1.4;">
-                  💡 <strong>功能说明</strong>: 当开启“限制 Inline 机器人”时，此处填写的机器人（不需要带 @，如 gif, poll）将被豁免拦截，允许群员继续正常使用它们。
+                  <span data-i18n="rule_inline_bot_tip">💡 Note: Bots listed here (without @, e.g. gif, poll) are exempted from inline bot blocking.</span>
                 </p>
               </div>
 
@@ -747,23 +760,23 @@
                   <div style="flex: 1; min-width: 250px;">
                     <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; font-size: 1rem;">
                       <input type="checkbox" id="keyword_auto_ban" style="width: auto;" />
-                      6. 敏感词自动拦截 (Auto-Ban Spam Keywords)
+                      <span data-i18n="rule_keywords_title">6. Auto-Filter Spam Keywords</span>
                     </label>
                     <p style="color: var(--text-secondary); margin: 6px 0 0 24px; font-size: 0.82rem; line-height: 1.4;">
-                      全字匹配消息及昵称、用户名。自动识别合并被空格/标点打碎的关键词（如“兼 职”、“兼.职”）。
+                      <span data-i18n="rule_keywords_desc">Matches keywords against messages, usernames, and nicknames with Unicode variation unfolding.</span>
                     </p>
                   </div>
                   <div style="display: flex; align-items: center; gap: 10px;">
                     <div style="display: flex; flex-direction: column; gap: 4px;">
-                      <span style="font-size: 0.75rem; color: var(--text-secondary);">拦截动作</span>
+                      <span style="font-size: 0.75rem; color: var(--text-secondary);" data-i18n="rule_action_label">Action</span>
                       <select id="keyword_action" style="padding: 6px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); font-size: 0.85rem;">
-                        <option value="ban">拉黑 (Ban)</option>
-                        <option value="mute">禁言 (Mute)</option>
-                        <option value="delete_only">仅删消息 (Delete Only)</option>
+                        <option value="ban" data-i18n="action_ban">Ban</option>
+                        <option value="mute" data-i18n="action_mute">Mute</option>
+                        <option value="delete_only" data-i18n="action_delete_only">Delete Only</option>
                       </select>
                     </div>
                     <div id="keyword_duration_container" style="display: none; flex-direction: column; gap: 4px;">
-                      <span style="font-size: 0.75rem; color: var(--text-secondary);">禁言时长 (分钟)</span>
+                      <span style="font-size: 0.75rem; color: var(--text-secondary);" data-i18n="rule_duration_label">Duration (mins)</span>
                       <input type="number" id="keyword_mute_duration" min="1" placeholder="60" style="padding: 6px; width: 90px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); font-size: 0.85rem;" />
                     </div>
                   </div>
@@ -772,27 +785,27 @@
 
               <!-- Spam keywords list (Shown directly below the Keyword rule card) -->
               <div class="form-group full-width" style="margin-bottom: 25px; padding-left: 20px;">
-                <label style="font-weight: 600;">敏感词库配置 (Spam Keywords - 逗号分隔)</label>
-                <input type="text" id="spam_keywords" placeholder="e.g. 兼职,包赢,导师,空投" />
+                <label style="font-weight: 600;" data-i18n="rule_keywords_label">Spam Keywords Configuration (Comma separated):</label>
+                <input type="text" id="spam_keywords" placeholder="e.g. easy money, claim airdrop, connect wallet" data-i18n-placeholder="rule_keywords_placeholder" />
               </div>
 
               <!-- Rule 7: Flood Control -->
               <div class="form-group full-width" style="border: 1px solid var(--border-color); padding: 15px; border-radius: 8px; margin-bottom: 20px; background-color: rgba(255,255,255,0.01);">
-                <label style="font-weight: 600; font-size: 1rem; margin-bottom: 10px; display: block;">7. 防刷屏频率限制 (Flood Control)</label>
+                <label style="font-weight: 600; font-size: 1rem; margin-bottom: 10px; display: block;"><span data-i18n="rule_flood_title">7. Message Flood Control</span></label>
                 <p style="color: var(--text-secondary); margin: 0 0 12px 0; font-size: 0.82rem; line-height: 1.4;">
-                  限制单人在短时间内的最大连续发帖频率，若触发限制自动对其禁言处罚。
+                  <span data-i18n="rule_flood_desc">Throttle rapid consecutive messages from a single user within a short time window.</span>
                 </p>
                 <div style="display: flex; gap: 15px; flex-wrap: wrap;">
                   <div style="flex: 1; min-width: 120px; display: flex; flex-direction: column; gap: 4px;">
-                    <span style="font-size: 0.75rem; color: var(--text-secondary);">消息数量上限</span>
+                    <span style="font-size: 0.75rem; color: var(--text-secondary);" data-i18n="rule_flood_max_msgs">Max Messages</span>
                     <input type="number" id="flood_threshold_messages" min="1" placeholder="5" />
                   </div>
                   <div style="flex: 1; min-width: 120px; display: flex; flex-direction: column; gap: 4px;">
-                    <span style="font-size: 0.75rem; color: var(--text-secondary);">时间窗口 (秒)</span>
+                    <span style="font-size: 0.75rem; color: var(--text-secondary);" data-i18n="rule_flood_window">Time Window (sec)</span>
                     <input type="number" id="flood_threshold_seconds" min="1" placeholder="3" />
                   </div>
                   <div style="flex: 1; min-width: 120px; display: flex; flex-direction: column; gap: 4px;">
-                    <span style="font-size: 0.75rem; color: var(--text-secondary);">禁言时长 (分钟)</span>
+                    <span style="font-size: 0.75rem; color: var(--text-secondary);" data-i18n="rule_duration_label">Duration (mins)</span>
                     <input type="number" id="flood_mute_duration" min="1" placeholder="60" />
                   </div>
                 </div>
@@ -802,27 +815,27 @@
                   <div style="flex: 1; min-width: 250px;">
                     <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; font-size: 1rem;">
                       <input type="checkbox" id="emoji_auto_ban" style="width: auto;" />
-                      8. Emoji 数量限制 (Emoji Density Limit)
+                      <span data-i18n="rule_emoji_title">8. Emoji Density Limit</span>
                     </label>
                     <p style="color: var(--text-secondary); margin: 6px 0 0 24px; font-size: 0.82rem; line-height: 1.4;">
-                      限制单条消息中允许包含的最大 Emoji 图形数量，防止大量表情符号刷屏广告。
+                      <span data-i18n="rule_emoji_desc">Limit maximum number of emoji characters allowed in a single message.</span>
                     </p>
                   </div>
                   <div style="display: flex; align-items: center; gap: 10px;">
                     <div style="display: flex; flex-direction: column; gap: 4px;">
-                      <span style="font-size: 0.75rem; color: var(--text-secondary);">Emoji 数量上限</span>
+                      <span style="font-size: 0.75rem; color: var(--text-secondary);" data-i18n="rule_emoji_max">Max Emojis</span>
                       <input type="number" id="emoji_threshold" min="1" placeholder="10" style="padding: 6px; width: 90px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); font-size: 0.85rem;" />
                     </div>
                     <div style="display: flex; flex-direction: column; gap: 4px;">
-                      <span style="font-size: 0.75rem; color: var(--text-secondary);">拦截动作</span>
+                      <span style="font-size: 0.75rem; color: var(--text-secondary);" data-i18n="rule_action_label">Action</span>
                       <select id="emoji_action" style="padding: 6px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); font-size: 0.85rem;">
-                        <option value="ban">拉黑 (Ban)</option>
-                        <option value="mute">禁言 (Mute)</option>
-                        <option value="delete_only">仅删消息 (Delete Only)</option>
+                        <option value="ban" data-i18n="action_ban">Ban</option>
+                        <option value="mute" data-i18n="action_mute">Mute</option>
+                        <option value="delete_only" data-i18n="action_delete_only">Delete Only</option>
                       </select>
                     </div>
                     <div id="emoji_duration_container" style="display: none; flex-direction: column; gap: 4px;">
-                      <span style="font-size: 0.75rem; color: var(--text-secondary);">禁言时长 (分钟)</span>
+                      <span style="font-size: 0.75rem; color: var(--text-secondary);" data-i18n="rule_duration_label">Duration (mins)</span>
                       <input type="number" id="emoji_mute_duration" min="1" placeholder="60" style="padding: 6px; width: 90px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); font-size: 0.85rem;" />
                     </div>
                   </div>
@@ -882,7 +895,7 @@
                   <div style="flex: 1; min-width: 280px;">
                     <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-weight: 700; font-size: 1.1rem; color: #fff;">
                       <input type="checkbox" id="welcome_enabled" style="width: auto; transform: scale(1.2);" />
-                      🎉 Member Welcome Message (入群欢迎语)
+                      <span data-i18n="welcome_title">🎉 Member Welcome Message</span>
                     </label>
                     <p style="color: var(--text-secondary); margin: 6px 0 0 28px; font-size: 0.85rem; line-height: 1.5;">
                       When enabled: if Captcha is OFF, sends immediately upon joining; if Captcha is ON, sends only after verification passes.
@@ -897,7 +910,7 @@
 
                 <div class="form-group full-width" style="margin-top: 10px;">
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                    <label style="font-weight: 600; font-size: 0.9rem; color: var(--text-primary); margin: 0;">Welcome Message Text (欢迎语内容)</label>
+                    <label style="font-weight: 600; font-size: 0.9rem; color: var(--text-primary); margin: 0;" data-i18n="welcome_text_label">Welcome Message Text</label>
                     <span style="font-size: 0.8rem; color: var(--text-secondary);">Placeholders: <code>{mention}</code>, <code>{name}</code>, <code>{group}</code>, <code>{topic_id}</code>, <code>{topic_link}</code></span>
                   </div>
                   <textarea id="welcome_message" rows="3" style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); font-family: inherit; font-size: 0.9rem; resize: vertical;" placeholder="🎉 Welcome {mention} to {group}! Glad to have you here."></textarea>
@@ -909,7 +922,7 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
                   <div>
                     <h3 style="margin: 0; font-size: 1rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px;">
-                      <span>🎯 Captcha & Welcome Interaction Scope (社群与 Topic 指定)</span>
+                      <span data-i18n="captcha_scope_title">🎯 Captcha & Welcome Interaction Scope</span>
                     </h3>
                     <p style="color: var(--text-secondary); margin: 4px 0 0 0; font-size: 0.85rem;">
                       Specify which group and topic the Captcha challenge and welcome message will appear in. Users can only verify in the designated topic.
@@ -970,22 +983,22 @@
 
               <!-- Text Templates Inputs -->
               <div class="form-group full-width">
-                <label style="font-weight: 600;">Math(数学运算) ({mention}, {timeout}, {group})</label>
+                <label style="font-weight: 600;" data-i18n="captcha_math_label">Math Challenge ({mention}, {timeout}, {group})</label>
                 <textarea id="captcha_welcome_msg_math" rows="2" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); font-family: inherit;" placeholder="🛡️ Welcome {mention} to {group}!&#10;Please select the correct formula answer within {timeout}s:"></textarea>
               </div>
 
               <div class="form-group full-width">
-                <label style="font-weight: 600;">6-Character(6位数验证码) ({mention}, {timeout}, {group})</label>
+                <label style="font-weight: 600;" data-i18n="captcha_6char_label">6-Character Code ({mention}, {timeout}, {group})</label>
                 <textarea id="captcha_welcome_msg_text" rows="2" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); font-family: inherit;" placeholder="🛡️ Welcome {mention} to {group}!&#10;Please select the correct 6-character captcha option within {timeout}s:"></textarea>
               </div>
 
               <div class="form-group full-width">
-                <label style="font-weight: 600;">1-Click(点击验证) ({mention}, {timeout}, {group})</label>
+                <label style="font-weight: 600;" data-i18n="captcha_click_label">1-Click Button ({mention}, {timeout}, {group})</label>
                 <textarea id="captcha_welcome_msg_click" rows="2" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); font-family: inherit;" placeholder="🛡️ Welcome {mention} to {group}!&#10;Please tap the button below within {timeout}s to complete human verification:"></textarea>
               </div>
 
               <div class="form-group">
-                <label style="font-weight: 600;">点击验证按钮文字</label>
+                <label style="font-weight: 600;" data-i18n="captcha_btn_text">Button Label for 1-Click Verification</label>
                 <input type="text" id="captcha_button_text" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color);" placeholder="🤖 I am human, tap to verify" />
               </div>
 
@@ -1005,7 +1018,7 @@
               </div>
 
               <div class="form-group full-width">
-                <label style="font-weight: 600;">Non-Owner Click Alert (非本人点击按钮弹窗提示)</label>
+                <label style="font-weight: 600;" data-i18n="captcha_non_owner_alert">Non-Owner Click Alert</label>
                 <input type="text" id="captcha_alert_other_user" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color);" placeholder="❌ This verification button belongs to a new member, no action required for you!" />
               </div>
 
@@ -1015,12 +1028,12 @@
               </div>
 
               <div class="form-group">
-                <label style="font-weight: 600;">Attempt 1 Incorrect Alert (第1次回答错误提示)</label>
+                <label style="font-weight: 600;" data-i18n="captcha_fail1_alert">Attempt 1 Incorrect Alert</label>
                 <input type="text" id="captcha_alert_attempt1_fail" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color);" placeholder="❌ Incorrect option! Attempt 1/2. Please try again." />
               </div>
 
               <div class="form-group">
-                <label style="font-weight: 600;">Attempt 2 Final Fail Kick Alert (第2次回答错误踢出提示)</label>
+                <label style="font-weight: 600;" data-i18n="captcha_fail2_alert">Attempt 2 Final Fail Kick Alert</label>
                 <input type="text" id="captcha_alert_final_fail" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color);" placeholder="❌ Incorrect option! Attempt 2/2. Verification failed, please rejoin to try again." />
               </div>
 
@@ -1122,7 +1135,7 @@
           background: rgba(15, 23, 42, 0.95) !important;
         }
 
-        /* Shadow Door Curtain Overlay (阴影门板) */
+        /* Shadow Door Curtain Overlay */
         .draw-shadow-door {
           position: absolute;
           inset: -10px;
@@ -1231,12 +1244,12 @@
           <div class="draw-top-actions" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
             <!-- Draw Engine Slider Switch (ALWAYS Colorful, Interactive & Prominent) -->
             <div class="draw-switch-container" style="display: inline-flex; align-items: center; gap: 8px; background: rgba(15, 23, 42, 0.85); padding: 5px 12px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.15);">
-              <span style="font-size: 0.85rem; color: #cbd5e1; font-weight: 600; white-space: nowrap;">开关:</span>
+              <span style="font-size: 0.85rem; color: #cbd5e1; font-weight: 600; white-space: nowrap;" data-i18n="draw_engine_label">Engine:</span>
               <label class="switch" style="position: relative; display: inline-block; width: 44px; height: 22px; margin: 0; cursor: pointer;">
                 <input type="checkbox" id="draw-engine-toggle-switch" disabled onchange="toggleDrawEngineMasterSwitch(this.checked)" style="opacity: 0; width: 0; height: 0;">
                 <span class="slider round" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #475569; transition: .3s; border-radius: 22px;"></span>
               </label>
-              <span id="draw-engine-toggle-label" style="font-size: 0.82rem; font-weight: 700; color: #94a3b8; min-width: 42px;">休眠</span>
+              <span id="draw-engine-toggle-label" style="font-size: 0.82rem; font-weight: 700; color: #94a3b8; min-width: 42px;" data-i18n="draw_engine_sleeping">Sleeping</span>
             </div>
             <!-- Other Top Action Buttons (Maskable) -->
             <div class="draw-action-buttons draw-maskable-ui" style="display: inline-flex; gap: 10px; align-items: center; flex-wrap: wrap;">
@@ -1261,11 +1274,11 @@
       <!-- Main Body Wrapped in Maskable UI with Shadow Door Curtain Overlay -->
       <div id="draw-main-body" class="draw-maskable-ui" style="position: relative; display: flex; flex-direction: column; gap: 24px;">
         
-        <!-- Shadow Door Curtain Overlay (阴影门板) -->
+        <!-- Shadow Door Curtain Overlay -->
         <div id="draw-shadow-door" class="draw-shadow-door hidden">
           <div class="draw-shadow-door-pill">
             <span style="font-size: 1.15rem;">🔒</span>
-            <span style="font-size: 0.9rem; font-weight: 600; color: #e2e8f0; letter-spacing: 0.02em;">抽奖引擎已休眠 · 请开启右上角【开关】解锁控制面板</span>
+            <span style="font-size: 0.9rem; font-weight: 600; color: #e2e8f0; letter-spacing: 0.02em;" data-i18n="draw_sleeping_curtain_tip">Lucky Draw Engine is Sleeping · Toggle switch in top right to unlock panel</span>
           </div>
         </div>
 
@@ -1274,11 +1287,11 @@
           <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px;">
             <div style="flex: 1; min-width: 280px;">
               <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
-                <span style="font-size: 1.1rem; font-weight: 700; color: #f8fafc;">Telegram Bot Token 填写</span>
+                <span style="font-size: 1.1rem; font-weight: 700; color: #f8fafc;" data-i18n="draw_bot_token_title">Telegram Bot Token Configuration</span>
                 <span id="draw-bot-status-pill" class="badge" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); font-size: 11px; padding: 2px 8px; border-radius: 6px;">Disconnected</span>
               </div>
               <p style="margin: 0; color: var(--text-secondary); font-size: 0.85rem;">
-                Bot Token 仅保存在当前运行进程的内存中，绝不会持久化存储。服务重启后需重新填写。
+                <span data-i18n="draw_bot_token_desc">Bot Token is stored only in runtime memory and never persisted to disk. Re-entry required after server restart.</span>
               </p>
             </div>
             <div style="display: flex; gap: 10px; align-items: center; flex: 1; min-width: 320px; max-width: 560px;">
@@ -1400,7 +1413,7 @@
                 <span id="draw-form-bjt-clock" style="font-size: 0.76rem; color: #38bdf8; font-family: var(--font-mono);"></span>
               </div>
               <input type="datetime-local" id="draw-form-autotime" class="input-text" style="width: 100%; padding: 9px 14px; border-radius: 8px; border: 1px solid #334155; background: #0b1120; color: #fff; box-sizing: border-box;" />
-              <div style="font-size: 0.74rem; color: #94a3b8; margin-top: 4px;">⚠️ 请注意按北京时间输入。不能早于当前时间。</div>
+              <div style="font-size: 0.74rem; color: #94a3b8; margin-top: 4px;" data-i18n="draw_bjt_warning">⚠️ Enter time in Beijing Time (UTC+8). Cannot be in the past.</div>
             </div>
           </div>
 
@@ -1611,10 +1624,10 @@
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 14px;">
           <div>
             <h3 id="draw-confirm-modal-title" style="margin: 0; font-size: 1.25rem; font-weight: 700; color: #f8fafc; display: flex; align-items: center; gap: 8px;">
-              🎲 抽奖确认 / Draw Confirmation
+              <span data-i18n="draw_confirm_modal_title">🎲 Draw Confirmation</span>
             </h3>
             <p id="draw-confirm-modal-subtitle" style="margin: 4px 0 0; color: var(--text-muted); font-size: 0.84rem;">
-              请选择开奖模式，支持全随机开奖或手动指定获奖者
+              <span data-i18n="draw_confirm_modal_sub">Select draw mode: Full Random or Pre-designated Winners</span>
             </p>
           </div>
           <button type="button" onclick="closeDrawConfirmModal()" style="background: none; border: none; color: var(--text-secondary); font-size: 1.4rem; cursor: pointer;">&times;</button>
@@ -1623,27 +1636,27 @@
         <!-- Event Summary Box -->
         <div style="background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 14px; margin-bottom: 20px; font-size: 0.85rem; display: flex; flex-direction: column; gap: 6px;">
           <div style="display: flex; justify-content: space-between;">
-            <span style="color: var(--text-muted);">活动名称:</span>
+            <span style="color: var(--text-muted);" data-i18n="draw_confirm_camp_name">Campaign Title:</span>
             <span id="draw-confirm-event-name" style="color: #f8fafc; font-weight: 700;">--</span>
           </div>
           <div style="display: flex; justify-content: space-between;">
-            <span style="color: var(--text-muted);">目标社群:</span>
+            <span style="color: var(--text-muted);" data-i18n="draw_confirm_target_comm">Target Community:</span>
             <span id="draw-confirm-target-chat" style="color: #38bdf8; font-family: var(--font-mono); font-weight: 600;">--</span>
           </div>
           <div style="display: flex; justify-content: space-between;">
-            <span style="color: var(--text-muted);">奖品设置:</span>
+            <span style="color: var(--text-muted);" data-i18n="draw_confirm_prizes">Prizes:</span>
             <span id="draw-confirm-prizes" style="color: #fbbf24; font-weight: 600;">--</span>
           </div>
           <div style="display: flex; justify-content: space-between;">
-            <span style="color: var(--text-muted);">参与人数:</span>
+            <span style="color: var(--text-muted);" data-i18n="draw_confirm_participants">Participants:</span>
             <span id="draw-confirm-participants" style="color: #10b981; font-weight: 600;">--</span>
           </div>
           <div id="draw-confirm-autotime-row" style="display: flex; justify-content: space-between;">
-            <span style="color: var(--text-muted);">开奖模式/时间:</span>
+            <span style="color: var(--text-muted);" data-i18n="draw_confirm_mode_time">Draw Mode / Time:</span>
             <span id="draw-confirm-autotime" style="color: #a5b4fc; font-family: var(--font-mono); font-weight: 600;">--</span>
           </div>
           <div id="draw-confirm-designated-row" class="hidden" style="display: flex; justify-content: space-between;">
-            <span style="color: var(--text-muted);">已预设指定:</span>
+            <span style="color: var(--text-muted);" data-i18n="draw_confirm_designated">Designated Winners:</span>
             <span id="draw-confirm-designated-status" style="color: #38bdf8; font-weight: 600;">--</span>
           </div>
         </div>
@@ -1651,38 +1664,38 @@
         <!-- Step 1: Initial Prompt & 3 Buttons -->
         <div id="draw-confirm-step-1" style="display: flex; flex-direction: column; gap: 16px;">
           <div style="text-align: center; padding: 10px 0 6px 0;">
-            <div style="font-size: 1.15rem; font-weight: 700; color: #f8fafc; margin-bottom: 6px;">是否现在开奖？</div>
-            <div style="font-size: 0.85rem; color: #94a3b8;">可直接全随机开奖；或进入指定开奖后，选择立刻开奖或按定时开奖。</div>
+            <div style="font-size: 1.15rem; font-weight: 700; color: #f8fafc; margin-bottom: 6px;" data-i18n="draw_confirm_draw_now_q">Draw Now?</div>
+            <div style="font-size: 0.85rem; color: #94a3b8;" data-i18n="draw_confirm_draw_now_desc">Draw immediately at full random, or enter designated mode to pick specific winners.</div>
           </div>
 
           <div style="display: flex; flex-direction: column; gap: 10px;">
-            <!-- Button 1: 立刻开奖 -->
+            <!-- Button 1: Instant Draw -->
             <button type="button" id="btn-draw-confirm-random" onclick="executeRandomDraw()" class="btn" style="padding: 14px 20px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; font-weight: 700; border-radius: 10px; border: none; font-size: 0.96rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35); transition: transform 0.15s ease;">
               <div style="display: flex; align-items: center; gap: 10px;">
                 <span style="font-size: 1.3rem;">⚡</span>
                 <div style="text-align: left;">
-                  <div>立刻开奖 (全随机)</div>
-                  <div style="font-size: 0.76rem; font-weight: normal; opacity: 0.9;">所有奖品全随机自动抽取并公布</div>
+                  <div data-i18n="draw_btn_random_now">Draw Now (Full Random)</div>
+                  <div style="font-size: 0.76rem; font-weight: normal; opacity: 0.9;" data-i18n="draw_btn_random_now_sub">All prizes randomly drawn and announced instantly.</div>
                 </div>
               </div>
               <span style="font-size: 1.1rem; opacity: 0.8;">&rarr;</span>
             </button>
 
-            <!-- Button 2: 指定开奖 -->
+            <!-- Button 2: Designated Draw -->
             <button type="button" id="btn-draw-confirm-designated" onclick="switchToDesignatedDrawView()" class="btn" style="padding: 14px 20px; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: #fff; font-weight: 700; border-radius: 10px; border: none; font-size: 0.96rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35); transition: transform 0.15s ease;">
               <div style="display: flex; align-items: center; gap: 10px;">
                 <span style="font-size: 1.3rem;">🎯</span>
                 <div style="text-align: left;">
-                  <div>指定开奖 (可指定中奖者与奖品)</div>
-                  <div style="font-size: 0.76rem; font-weight: normal; opacity: 0.9;">可指定中奖者，之后选择直接开奖或按定时开奖</div>
+                  <div data-i18n="draw_btn_designated">Designated Draw (Pre-assign Winners)</div>
+                  <div style="font-size: 0.76rem; font-weight: normal; opacity: 0.9;" data-i18n="draw_btn_designated_sub">Pre-assign winners to specific prizes, then draw now or schedule.</div>
                 </div>
               </div>
               <span style="font-size: 1.1rem; opacity: 0.8;">&rarr;</span>
             </button>
 
-            <!-- Button 3: 取消 -->
+            <!-- Button 3: Cancel -->
             <button type="button" onclick="closeDrawConfirmModal()" class="btn btn-secondary" style="margin-top: 4px; padding: 12px; border-radius: 10px; font-weight: 600; font-size: 0.92rem; border: 1px solid rgba(255, 255, 255, 0.15); background: rgba(30, 41, 59, 0.8); color: #cbd5e1; cursor: pointer;">
-              取消 (返回)
+              <span data-i18n="draw_btn_cancel_back">Cancel (Back)</span>
             </button>
           </div>
         </div>
@@ -1690,16 +1703,16 @@
         <!-- Step 2: Designated Draw Panel (Hidden by default) -->
         <div id="draw-confirm-step-2" class="hidden" style="display: flex; flex-direction: column; gap: 14px;">
           <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; padding: 10px 14px; font-size: 0.84rem;">
-            <span style="color: #cbd5e1;">奖品总配额: <b id="draw-desig-total-prizes" style="color: #fbbf24;">0</b></span>
-            <span style="color: #cbd5e1;">已指定: <b id="draw-desig-assigned-count" style="color: #38bdf8;">0</b></span>
-            <span style="color: #cbd5e1;">剩余自动随机抽: <b id="draw-desig-remaining-count" style="color: #10b981;">0</b></span>
+            <span style="color: #cbd5e1;"><span data-i18n="draw_quota_total">Total Prizes:</span> <b id="draw-desig-total-prizes" style="color: #fbbf24;">0</b></span>
+            <span style="color: #cbd5e1;"><span data-i18n="draw_quota_assigned">Assigned:</span> <b id="draw-desig-assigned-count" style="color: #38bdf8;">0</b></span>
+            <span style="color: #cbd5e1;"><span data-i18n="draw_quota_remaining">Remaining Random:</span> <b id="draw-desig-remaining-count" style="color: #10b981;">0</b></span>
           </div>
 
           <!-- Individual Prize Quota Breakdown Pills -->
           <div id="draw-desig-pills-wrap" style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 4px;"></div>
 
           <p style="margin: 0; font-size: 0.82rem; color: var(--text-muted);">
-            💡 从下方添加要指定的参与者与所获奖品。指定人数不能超过总奖品数；若指定人数少于总奖品数，剩余奖品将在开奖时从剩余参与者中随机抽取。
+            <span data-i18n="draw_quota_tip">💡 Add designated participants and assigned prizes below. Remaining prizes will be randomly drawn.</span>
           </p>
 
           <!-- Designated Rows Container -->
@@ -1710,41 +1723,41 @@
           <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
             <div style="display: flex; gap: 8px;">
               <button type="button" id="btn-add-designated-row" class="btn btn-secondary btn-xs" onclick="addDesignatedWinnerRow()" style="padding: 7px 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
-                ➕ 添加指定获奖者
+                <span data-i18n="draw_btn_add_designated">➕ Add Designated Winner</span>
               </button>
               <button type="button" id="btn-clear-designated-rows" class="btn btn-secondary btn-xs" onclick="clearAllDesignatedRows()" style="padding: 7px 10px; color: #f87171; display: inline-flex; align-items: center; gap: 4px;">
-                清空指定 (恢复纯随机)
+                <span data-i18n="draw_btn_clear_designated">Clear All (Reset to Random)</span>
               </button>
             </div>
-            <span id="draw-desig-limit-tip" style="font-size: 0.78rem; color: #f87171;" class="hidden">已达总奖品数上限</span>
+            <span id="draw-desig-limit-tip" style="font-size: 0.78rem; color: #f87171;" class="hidden" data-i18n="draw_limit_reached">Prize quota limit reached</span>
           </div>
 
           <!-- Schedule Auto Draw Time Box (If event has or needs auto draw time) -->
           <div id="draw-desig-schedule-box" style="background: rgba(15, 23, 42, 0.6); border: 1px dashed rgba(99, 102, 241, 0.35); border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 0.82rem; font-weight: 600; color: #cbd5e1;">⏰ 自动开奖时间 (UTC+8):</span>
+              <span style="font-size: 0.82rem; font-weight: 600; color: #cbd5e1;" data-i18n="draw_auto_time_label">⏰ Auto Draw Time (UTC+8):</span>
               <span id="draw-desig-current-autotime-badge" style="font-size: 0.78rem; color: #a5b4fc; font-family: var(--font-mono);">--</span>
             </div>
             <div id="draw-desig-time-input-wrap" class="hidden" style="display: flex; gap: 8px; align-items: center; margin-top: 4px;">
               <input type="datetime-local" id="draw-desig-new-autotime" class="input-text" style="flex: 1; padding: 7px 10px; border-radius: 6px; border: 1px solid #334155; background: #0b1120; color: #fff; font-size: 0.82rem;" />
-              <span style="font-size: 0.75rem; color: #94a3b8;">未设定时，可在此设置时间并按定时开奖</span>
+              <span style="font-size: 0.75rem; color: #94a3b8;" data-i18n="draw_auto_time_sub">If unset, configure time here and draw on schedule.</span>
             </div>
           </div>
 
           <!-- Bottom Actions for Step 2 -->
           <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 14px; flex-wrap: wrap;">
             <button type="button" class="btn btn-secondary btn-sm" onclick="switchBackToDrawStep1()" style="padding: 8px 14px;">
-              &larr; 返回上一步
+              <span data-i18n="back">&larr; Back</span>
             </button>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-              <button type="button" class="btn btn-secondary btn-sm" onclick="closeDrawConfirmModal()" style="padding: 8px 12px;">
-                取消
+              <button type="button" class="btn btn-secondary btn-sm" onclick="closeDrawConfirmModal()" style="padding: 8px 12px;" data-i18n="cancel">
+                Cancel
               </button>
               <button type="button" id="btn-save-schedule-designated" class="btn btn-secondary btn-sm" onclick="saveAndScheduleDesignatedDraw()" style="padding: 8px 16px; font-weight: 700; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: #fff; border: none; box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35);">
-                ⏰ 按照 Auto Draw 时间开奖
+                <span data-i18n="draw_btn_draw_scheduled">⏰ Draw on Auto Draw Schedule</span>
               </button>
               <button type="button" id="btn-execute-designated-draw" class="btn btn-primary btn-sm" onclick="executeDesignatedDraw()" style="padding: 8px 18px; font-weight: 700; background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
-                ⚡ 立刻开奖
+                <span data-i18n="draw_btn_draw_now_instant">⚡ Draw Now</span>
               </button>
             </div>
           </div>
@@ -1760,7 +1773,7 @@
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 12px; margin-bottom: 14px;">
           <div style="display: flex; align-items: center; gap: 8px;">
             <span style="font-size: 1.25rem;">👥</span>
-            <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: #f8fafc;">选择指定中奖者</h3>
+            <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: #f8fafc;" data-i18n="draw_picker_title">Select Designated Winner</h3>
           </div>
           <button type="button" class="btn-close" onclick="closeParticipantPickerModal()" style="background: none; border: none; font-size: 1.3rem; color: #94a3b8; cursor: pointer;">&times;</button>
         </div>
@@ -1768,21 +1781,17 @@
         <!-- Search Toolbar -->
         <div style="display: flex; gap: 8px; margin-bottom: 12px;">
           <div style="position: relative; flex: 1;">
-            <input type="text" id="draw-picker-search-input" class="input-text" placeholder="搜索电报用户名 (@username) 或昵称..." onkeyup="if(event.key==='Enter') doSearchParticipantPicker();" oninput="onParticipantPickerInput()" style="width: 100%; height: 38px; padding: 6px 12px 6px 32px; border-radius: 6px; border: 1px solid #334155; background: #0b1120; color: #fff; font-size: 0.84rem; box-sizing: border-box;" />
+            <input type="text" id="draw-picker-search-input" class="input-text" placeholder="Search Telegram @username or nickname..." data-i18n-placeholder="draw_picker_search_placeholder" onkeyup="if(event.key==='Enter') doSearchParticipantPicker();" oninput="onParticipantPickerInput()" style="width: 100%; height: 38px; padding: 6px 12px 6px 32px; border-radius: 6px; border: 1px solid #334155; background: #0b1120; color: #fff; font-size: 0.84rem; box-sizing: border-box;" />
             <span style="position: absolute; left: 10px; top: 9px; font-size: 0.85rem; opacity: 0.5;">🔍</span>
           </div>
-          <button type="button" class="btn btn-primary btn-sm" onclick="doSearchParticipantPicker()" style="padding: 0 14px; height: 38px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
-            搜索
-          </button>
-          <button type="button" class="btn btn-secondary btn-sm" onclick="resetParticipantPickerSearch()" style="padding: 0 10px; height: 38px;">
-            重置
-          </button>
+          <button type="button" class="btn btn-primary btn-sm" onclick="doSearchParticipantPicker()" style="padding: 0 14px; height: 38px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;" data-i18n="search">Search</button>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="resetParticipantPickerSearch()" style="padding: 0 10px; height: 38px;" data-i18n="reset">Reset</button>
         </div>
 
         <!-- Stats Bar -->
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 0.78rem; color: #94a3b8;">
-          <span>共 <b id="draw-picker-total-count" style="color: #38bdf8;">0</b> 位参与者，匹配 <b id="draw-picker-filtered-count" style="color: #fbbf24;">0</b> 位</span>
-          <span style="font-size: 0.74rem; color: #64748b;">支持用户名/昵称不区分大小写</span>
+          <span><b id="draw-picker-total-count" style="color: #38bdf8;">0</b> <span data-i18n="draw_picker_total_prefix">participants total</span>, <b id="draw-picker-filtered-count" style="color: #fbbf24;">0</b> <span data-i18n="draw_picker_match_prefix">matching</span></span>
+          <span style="font-size: 0.74rem; color: #64748b;" data-i18n="draw_picker_case_note">Case-insensitive username and nickname match</span>
         </div>
 
         <!-- Participant List Container -->
@@ -1792,9 +1801,7 @@
 
         <!-- Footer -->
         <div style="display: flex; justify-content: flex-end; margin-top: 14px; border-top: 1px solid #334155; padding-top: 12px;">
-          <button type="button" class="btn btn-secondary btn-sm" onclick="closeParticipantPickerModal()" style="padding: 7px 18px;">
-            关闭
-          </button>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="closeParticipantPickerModal()" style="padding: 7px 18px;" data-i18n="close">Close</button>
         </div>
       </div>
     </div>
@@ -1866,59 +1873,59 @@
       <div style="max-height: 450px; overflow-y: auto; text-align: left; margin: 15px 0; font-size: 0.92rem; line-height: 1.6; color: var(--text-color); padding-right: 8px;">
         <p style="margin-top: 0; color: var(--text-secondary);">This manual documents the detailed moderation logic, detection mechanisms, and action triggers implemented by the Anti-Spam engine.</p>
         
-        <h4 style="color: var(--primary-color); margin: 15px 0 5px 0; border-bottom: 1px solid var(--border-color); padding-bottom: 4px;">🛡️ Action Type Definitions (处置动作说明)</h4>
+        <h4 style="color: var(--primary-color); margin: 15px 0 5px 0; border-bottom: 1px solid var(--border-color); padding-bottom: 4px;"><span data-i18n="doc_action_defs">🛡️ Action Type Definitions</span></h4>
         <ul style="margin: 0; padding-left: 20px;">
-          <li><strong>Ban (封禁)</strong>: Kicks the spammer from the group and permanently bans them. They cannot re-join unless unbanned by an admin.</li>
-          <li><strong>Mute (禁言)</strong>: Restricts the user from sending messages, media, or links. The restriction can be <strong>temporary</strong> (automatically lifted after the set duration in minutes) or permanent (if set to 0).</li>
-          <li><strong>Delete Only (仅删消息)</strong>: Removes the offending message immediately but does not apply any restrictions to the user. Ideal for first-time offences or softer rules.</li>
+          <li><strong>Ban</strong>: <span data-i18n="doc_ban_desc">Kicks the spammer from the group and permanently bans them. They cannot re-join unless unbanned by an admin.</span></li>
+          <li><strong>Mute</strong>: <span data-i18n="doc_mute_desc">Restricts the user from sending messages, media, or links temporarily or permanently.</span></li>
+          <li><strong>Delete Only</strong>: <span data-i18n="doc_delete_desc">Removes the offending message immediately without restricting the user.</span></li>
         </ul>
 
-        <h4 style="color: var(--primary-color); margin: 15px 0 5px 0; border-bottom: 1px solid var(--border-color); padding-bottom: 4px;">⚙️ Safety Interception Rules (6 大防御机制与刷屏限制)</h4>
+        <h4 style="color: var(--primary-color); margin: 15px 0 5px 0; border-bottom: 1px solid var(--border-color); padding-bottom: 4px;"><span data-i18n="doc_safety_rules">⚙️ Safety Interception Rules</span></h4>
         
         <div style="margin-top: 10px;">
-          <strong>1. RTLO 字符检测 (RTLO Characters)</strong>
+          <strong data-i18n="doc_rtlo_rule">1. RTLO Characters Detection</strong>
           <p style="margin: 2px 0 10px 0; color: var(--text-secondary); font-size: 0.85rem;">
             Checks for the Right-to-Left Override unicode character (<code>\u202e</code>). Spammers use this character to trick users by displaying file names or links backward (e.g., hiding a malicious executable file or reversing links). Recommended Action: <strong>Ban</strong> or <strong>Mute (1440 mins)</strong>.
           </p>
         </div>
 
         <div>
-          <strong>2. 新人链接限制 (New User Link Spam)</strong>
+          <strong data-i18n="doc_new_user_rule">2. New Member Link Restriction</strong>
           <p style="margin: 2px 0 10px 0; color: var(--text-secondary); font-size: 0.85rem;">
             Restricts new users (Level 1 and XP &lt; 50) from posting external links. Admin/whitelisted domains are bypassed. Banned or muted if they attempt to post links immediately after joining. Recommended Action: <strong>Mute (60 mins)</strong> or <strong>Delete Only</strong>.
           </p>
         </div>
 
         <div>
-          <strong>3. Combot CAS 全局黑名单 (CAS Global Check)</strong>
+          <strong data-i18n="doc_cas_rule">3. Combot CAS Global Blacklist</strong>
           <p style="margin: 2px 0 10px 0; color: var(--text-secondary); font-size: 0.85rem;">
             Queries Combot's global anti-spam database. When a user sends their first message in the group, the bot queries the API. If they are flagged as a known spammer across Telegram, the bot executes the configured action. Recommended Action: <strong>Ban</strong>.
           </p>
         </div>
 
         <div>
-          <strong>4. 限制 Inline Keyboards 键盘 (Block Inline Keyboards)</strong>
+          <strong data-i18n="doc_inline_kb_rule">4. Block Inline Keyboards</strong>
           <p style="margin: 2px 0 10px 0; color: var(--text-secondary); font-size: 0.85rem;">
             Blocks messages containing custom inline buttons/keyboards sent by non-admins. Real users cannot send custom buttons in messages; this is a clear signature of automated spam bots. Recommended Action: <strong>Ban</strong>.
           </p>
         </div>
 
         <div>
-          <strong>5. 限制 Inline 机器人 (Block Inline Bots)</strong>
+          <strong data-i18n="doc_inline_bot_rule">5. Block Messages via Inline Bots</strong>
           <p style="margin: 2px 0 10px 0; color: var(--text-secondary); font-size: 0.85rem;">
             Blocks messages sent via inline query bots (e.g. typing <code>@gif</code> or custom advertising bots). You can whitelist legitimate bots like <code>gif, vote, like, poll</code> to keep them usable. Recommended Action: <strong>Delete Only</strong>.
           </p>
         </div>
 
         <div>
-          <strong>6. 敏感词自动拦截 (Spam Keywords)</strong>
+          <strong data-i18n="doc_keywords_rule">6. Auto-Ban Spam Keywords</strong>
           <p style="margin: 2px 0 10px 0; color: var(--text-secondary); font-size: 0.85rem;">
-            Extracts the user's message, username, and nickname, normalizes Unicode (collapsing spaced-out words like "加 ... 群" or stylized fonts), and checks against the comma-separated keyword list. Recommended Action: <strong>Ban</strong> or <strong>Mute (1440 mins)</strong>.
+            Extracts the user's message, username, and nickname, normalizes Unicode (collapsing spaced-out words like "e a s y   m o n e y" or stylized fonts), and checks against the comma-separated keyword list. Recommended Action: <strong>Ban</strong> or <strong>Mute (1440 mins)</strong>.
           </p>
         </div>
 
         <div>
-          <strong>7. 防刷屏限制 (Flood Control)</strong>
+          <strong data-i18n="doc_flood_rule">7. Message Flood Control</strong>
           <p style="margin: 2px 0 10px 0; color: var(--text-secondary); font-size: 0.85rem;">
             Monitors messages per user in real-time. If a user exceeds the configured messages threshold (e.g. 5 messages) within the time window (e.g. 3 seconds), they are automatically muted for the set duration. Recommended Action: <strong>Mute (60 mins)</strong>.
           </p>
@@ -1945,6 +1952,6 @@
 
   <!-- Near Full-Screen Fake Leaderboard Data Modal -->
   <!-- Custom JavaScript -->
-  <script src="js/admin.js?v=1.0.0"></script>
+  <script src="js/admin.js?v=1.0.2"></script>
 </body>
 </html>

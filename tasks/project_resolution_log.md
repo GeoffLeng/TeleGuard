@@ -119,5 +119,69 @@ Chronological technical record of the standalone community bot extraction from T
 3. **Orphan Asset Auto-Cleanup ([src/server.ts](file:///f:/Antigravity_Project/TeleGuard/src/server.ts#L367-L420))**:
    - Ensured replacement uploads for card backgrounds and default avatars properly unlink previous files from `/uploads/`, eliminating disk space leakage.
 
+---
 
+### [2026-10-14] UI Internationalization (i18n) & Default English Enforcement
+
+#### 1. Context & Objectives
+- Ensure all TeleGuard frontend pages default to 100% English with zero Chinese characters on initial load.
+- Implement an accessible top-right language switcher on all surfaces (Login, Admin Dashboard, Leaderboard Mini App) allowing dynamic switching to Chinese and back, with preference persistence.
+
+#### 2. Resolutions Applied
+1. **Zero-Dependency Lightweight Client i18n Engine ([public/js/i18n.js](file:///f:/Antigravity_Project/TeleGuard/public/js/i18n.js))**:
+   - Built standalone i18n engine with comprehensive `en` and `zh` dictionaries.
+   - Initialized strictly with `'en'` as the default language.
+   - Built `applyTranslations()` to reactively bind `data-i18n`, `data-i18n-html`, `data-i18n-placeholder`, and `data-i18n-title`.
+   - Persisted language preferences via `localStorage.getItem('teleguard_lang')`.
+2. **Pruning Hardcoded Chinese from HTML & Scripts**:
+   - Converted all 134 Chinese lines in [public/admin.html](file:///f:/Antigravity_Project/TeleGuard/public/admin.html) to English defaults with declarative `data-i18n` bindings.
+   - Converted all 75 dynamic Chinese strings in [public/js/admin.js](file:///f:/Antigravity_Project/TeleGuard/public/js/admin.js) (toasts, alerts, confirms, dropdown items, empty states) to `window.i18n.t(...)`.
+   - Verified 0 Chinese characters remain in default HTML/CSS/JS across the entire `public/` directory.
+3. **Top-Right Language Switcher Component Integration**:
+   - Integrated Cyber Dark pill button (`.lang-switch-btn`) on the Login screen, Dashboard Header, and H5 Leaderboard Header.
+   - Added instant reactivity: clicking toggles between English and 简体中文 with 0 page reload delay.
+
+
+---
+
+### [2026-10-14] Fix Admin Web Login Failure (SyntaxError in admin.js)
+
+#### 1. Symptom & Investigation
+- User reported unable to log in via password `admin123`.
+- Backend diagnostic confirmed `ADMIN_PASSWORD=admin123` in `.env` and SQLite DB, returning HTTP 200 upon direct API auth.
+- Syntax audit of client-side scripts revealed `admin.js` failed to parse in the browser due to an unescaped template string quote at line 3152 (`Missing } in template expression`), which prevented `loginForm` submit listener from executing.
+
+#### 2. Root Cause & Resolution
+- **Client Script Syntax**: Corrected nested quotes inside template expression on [public/js/admin.js](file:///f:/Antigravity_Project/TeleGuard/public/js/admin.js#L3150-L3158).
+- **Initial Auth Guard**: Updated DOMContentLoaded session verification to check `res && res.success` on [public/js/admin.js](file:///f:/Antigravity_Project/TeleGuard/public/js/admin.js#L222-L230).
+- **Asset Version Bumping**: Incremented script cache-busting parameter to `admin.js?v=1.0.1` in [public/admin.html](file:///f:/Antigravity_Project/TeleGuard/public/admin.html#L1954-L1956) to ensure immediate browser invalidation.
+
+---
+
+### [2026-10-14] Fix Telegram Auth Login Flow & Real-Time Bot Linkage
+
+#### 1. Symptom & Investigation
+- User clicked "Login via Telegram" / "通过电报授权登录" and observed no response.
+- Browser was initially blocked by the previous uncached SyntaxError.
+- Furthermore, `/api/admin/auth/init` previously only returned `{ token, code }` without `botUsername`, causing deep-links to render as `https://t.me/undefined?start=...` and display generic `@Bot` placeholders.
+
+#### 2. Root Cause & Resolution
+- **Backend Bot Identity Resolution**: Added `getBotUsername()` in [src/server.ts](file:///f:/Antigravity_Project/TeleGuard/src/server.ts#L298-L320), querying and caching the bot username (`CashboxRankBot`) directly via `telegramApi.getMe()`, and returning it in `/api/admin/auth/init`.
+- **Frontend Reactive Link & Prompt Binding**: Updated [public/js/admin.js](file:///f:/Antigravity_Project/TeleGuard/public/js/admin.js#L114-L175) to dynamically inject the real bot handle into the instructions (`tg-auth-instruction-top`) and bind deep-link targets (`lnk-tg-bot`). Added localized loading and error display states.
+- **Cache-Busting & UI Reset**: Bumped [public/admin.html](file:///f:/Antigravity_Project/TeleGuard/public/admin.html#L1954-L1956) cache buster to `admin.js?v=1.0.2` and preserved i18n data-attributes in `resetTgLoginUI()`.
+
+---
+
+### [2026-10-14] Fix Duplicate Overlapping Language Switcher in Admin Header
+
+#### 1. Symptom & Investigation
+- When logged into the Admin Dashboard, two `🌐 English` language switch buttons appeared overlapping in the top-right corner.
+- One button belonged to the Dashboard Header (`.dashboard-header`), while the other was `.login-lang-switch-wrapper`, which was previously placed outside `#login-container` with `position: fixed; top: 24px; right: 28px; z-index: 1000;`.
+- Because `#login-lang-switch-wrapper` was outside `#login-container`, hiding `#login-container` on login did not hide the login screen's language button, causing it to float fixed on top of the dashboard header's language button and the Logout button.
+
+#### 2. Root Cause & Resolution
+- **DOM Encapsulation**: Relocated `<div id="login-lang-switch-wrapper">` inside `<div id="login-container">` in [public/admin.html](file:///f:/Antigravity_Project/TeleGuard/public/admin.html#L83-L95). When `#login-container` receives `.hidden`, its child language switcher is automatically hidden.
+- **CSS Coordinate Scoping**: Added `position: relative;` to `.login-container` and changed `.login-lang-switch-wrapper` to `position: absolute;` in [public/css/admin.css](file:///f:/Antigravity_Project/TeleGuard/public/css/admin.css#L155-L165, #L1160-L1170), cleanly locking it to the login screen viewport without leaking into dashboard views.
+- **Explicit JS Visibility Guard**: Added explicit `.hidden` toggles in `showDashboard()` and `logout()` in [public/js/admin.js](file:///f:/Antigravity_Project/TeleGuard/public/js/admin.js#L215-L238).
+- **Cache-Busting**: Bumped CSS version to `admin.css?v=3.3` in [public/admin.html](file:///f:/Antigravity_Project/TeleGuard/public/admin.html#L16).
 

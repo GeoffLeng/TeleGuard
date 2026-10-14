@@ -295,11 +295,26 @@ app.get("/api/leaderboard", async (req, res) => {
 // -------------------------------------------------------------
 // ADMIN AUTHENTICATION
 // -------------------------------------------------------------
-app.get("/api/admin/auth/init", authInitLimiter, (req, res) => {
+let cachedBotUsername = "";
+export async function getBotUsername(): Promise<string> {
+  if (cachedBotUsername) return cachedBotUsername;
+  if (!BOT_TOKEN || BOT_TOKEN.includes("PlaceholderToken")) return "";
+  try {
+    const me = await telegramApi.getMe();
+    cachedBotUsername = me.username || "";
+    return cachedBotUsername;
+  } catch (err: any) {
+    console.warn("[Server Warning] Failed to get bot username:", err.message);
+    return "";
+  }
+}
+
+app.get("/api/admin/auth/init", authInitLimiter, async (req, res) => {
   try {
     const clientIp = req.ip || req.socket.remoteAddress;
     const { token, code } = createLoginSession(clientIp);
-    res.json({ token, code });
+    const botUsername = await getBotUsername();
+    res.json({ token, code, botUsername });
   } catch (err: any) {
     res.status(500).json({ error: err.message || "Failed to initialize login verification session." });
   }

@@ -20,7 +20,13 @@
       <div class="category-switch-container">
         <button id="cat-activity" class="category-btn active">
           <span class="cat-icon">⚡</span>
-          <span>Activity Ranking</span>
+          <span data-i18n="lb_activity_ranking">Activity Ranking</span>
+        </button>
+      </div>
+      <div class="header-right-tools">
+        <button class="lang-switch-btn" onclick="window.i18n.toggle()" title="Switch Language">
+          <span>🌐</span>
+          <span class="lang-switch-label">English</span>
         </button>
       </div>
     </header>
@@ -28,8 +34,8 @@
     <!-- Sub Tab Selectors (Weekly vs All-Time) -->
     <div class="tabs-container">
       <div class="tabs-pill">
-        <button id="tab-weekly" class="tab-btn active" onclick="switchTab('weekly')">Weekly</button>
-        <button id="tab-all" class="tab-btn" onclick="switchTab('all')">All-Time</button>
+        <button id="tab-weekly" class="tab-btn active" onclick="switchTab('weekly')" data-i18n="lb_weekly">Weekly</button>
+        <button id="tab-all" class="tab-btn" onclick="switchTab('all')" data-i18n="lb_all_time">All-Time</button>
       </div>
     </div>
 
@@ -38,7 +44,7 @@
       <ul id="leaderboard-list" class="leaderboard-list">
         <div class="loading-spinner">
           <div class="spinner"></div>
-          <p>Loading Leaderboard...</p>
+          <p data-i18n="lb_loading">Loading Leaderboard...</p>
         </div>
       </ul>
     </main>
@@ -46,16 +52,17 @@
     <!-- Sticky Footer (Current User Details) -->
     <footer id="sticky-footer" class="user-footer hidden">
       <div class="user-footer-content">
-        <span class="you-badge">YOU</span>
+        <span class="you-badge" data-i18n="lb_you">YOU</span>
         <span id="footer-rank" class="footer-rank">#--</span>
         <div id="footer-avatar" class="footer-avatar"></div>
-        <span id="footer-name" class="footer-name">Loading...</span>
+        <span id="footer-name" class="footer-name" data-i18n="lb_footer_loading">Loading...</span>
         <span id="footer-xp" class="footer-xp">0 XP</span>
       </div>
     </footer>
   </div>
 
   <!-- Custom JavaScript -->
-  <script src="js/leaderboard.js?v=2.0"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/leaderboard.js?v=2.1"></script>
 </body>
 </html>
