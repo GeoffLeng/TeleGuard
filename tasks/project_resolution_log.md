@@ -102,4 +102,22 @@ Chronological technical record of the standalone community bot extraction from T
    - Added in [public/js/admin.js](file:///f:/Antigravity_Project/TeleGuard/public/js/admin.js#L1847-L1925), featuring automatic DOM injection, Cyber Dark gradients for success/info/error, micro-animations, and 3.5s auto-dismiss.
    - Restored instant optimistic UI rendering and flawless state synchronization on switch toggles.
 
+---
+
+### [2026-10-14] Code Review Quality Audit & Concurrency Optimization
+
+#### 1. Context & Objectives
+- Systematic comprehensive code review across the codebase adhering to the `code-review` standard (Logic, Resilience, Architecture, Concurrency, Security).
+- Addressed latent concurrency bugs in SQLite atomic operations, peer recognition anti-sybil checks, and file asset cleanup.
+
+#### 2. Resolutions Applied
+1. **Atomic XP Increment & Race Condition Defense ([src/database.ts](file:///f:/Antigravity_Project/TeleGuard/src/database.ts#L601-L660))**:
+   - Replaced `INSERT OR REPLACE` with `ON CONFLICT(chat_id, user_id) DO UPDATE` in `createUser` to prevent accidental reset of user XP/levels during concurrent inserts.
+   - Converted JS-memory read-modify-write in `addXp` to atomic SQL increment (`SET total_xp = total_xp + ?, weekly_xp = weekly_xp + ?`), eliminating lost updates in high-volume groups.
+2. **Peer Recognition Sybil Throttling ([src/bot.ts](file:///f:/Antigravity_Project/TeleGuard/src/bot.ts#L2856-L2865))**:
+   - Scoped peer reaction cooldown to `peer_${emoji}_to_${authorId}` and added a receiving throttle on the recipient, preventing multi-account farming.
+3. **Orphan Asset Auto-Cleanup ([src/server.ts](file:///f:/Antigravity_Project/TeleGuard/src/server.ts#L367-L420))**:
+   - Ensured replacement uploads for card backgrounds and default avatars properly unlink previous files from `/uploads/`, eliminating disk space leakage.
+
+
 

@@ -2854,10 +2854,11 @@ bot.on("message_reaction", async (ctx) => {
     const matchEmojis = addedEmojis.filter((e) => recognitionEmojis.includes(e));
 
     for (const emoji of matchEmojis) {
-      const actionKey = `peer_${emoji}`;
-      const canPeerGetXp = await db.checkCooldown(chatId, reactorId, actionKey, settings.cooldown_peer_recognition);
+      const actionKey = `peer_${emoji}_to_${authorId}`;
+      const canReactorGive = await db.checkCooldown(chatId, reactorId, actionKey, settings.cooldown_peer_recognition);
+      const canAuthorReceive = await db.checkCooldown(chatId, authorId, "peer_received", Math.min(settings.cooldown_peer_recognition, 15));
 
-      if (canPeerGetXp) {
+      if (canReactorGive && canAuthorReceive) {
         const authorObj = await db.getUser(chatId, authorId);
         if (authorObj) {
           await db.addXp(chatId, authorId, settings.xp_peer_recognition, {

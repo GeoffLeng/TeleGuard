@@ -369,6 +369,13 @@ app.post("/api/admin/upload-bg", authorizeAdmin, upload.single("background"), as
     if (!req.file) {
       return res.status(400).json({ error: "No file uploaded." });
     }
+    const settings = await db.getSettings();
+    if (settings.card_bg_image && settings.card_bg_image.startsWith("/uploads/")) {
+      const oldLocalPath = path.join(process.cwd(), "public", settings.card_bg_image);
+      if (fs.existsSync(oldLocalPath)) {
+        try { fs.unlinkSync(oldLocalPath); } catch {}
+      }
+    }
     const webPath = `/uploads/${req.file.filename}`;
     await db.updateSettings({ card_bg_image: webPath });
     res.json({ success: true, url: webPath });
@@ -397,6 +404,13 @@ app.post("/api/admin/upload-avatar", authorizeAdmin, upload.single("avatar"), as
   try {
     if (!req.file) {
       return res.status(400).json({ error: "No file uploaded." });
+    }
+    const settings = await db.getSettings();
+    if (settings.default_avatar && settings.default_avatar.startsWith("/uploads/")) {
+      const oldLocalPath = path.join(process.cwd(), "public", settings.default_avatar);
+      if (fs.existsSync(oldLocalPath)) {
+        try { fs.unlinkSync(oldLocalPath); } catch {}
+      }
     }
     const webPath = `/uploads/${req.file.filename}`;
     await db.updateSettings({ default_avatar: webPath });

@@ -600,7 +600,12 @@ export async function createUser(
 ): Promise<DbUser> {
   const database = await getDb();
   await database.run(
-    "INSERT OR REPLACE INTO users (chat_id, user_id, username, first_name, last_name, total_xp, weekly_xp, level) VALUES (?, ?, ?, ?, ?, 0, 0, 1)",
+    `INSERT INTO users (chat_id, user_id, username, first_name, last_name, total_xp, weekly_xp, level)
+     VALUES (?, ?, ?, ?, ?, 0, 0, 1)
+     ON CONFLICT(chat_id, user_id) DO UPDATE SET
+       username = excluded.username,
+       first_name = excluded.first_name,
+       last_name = excluded.last_name`,
     [chatId, userId, username, firstName, lastName]
   );
   return {
@@ -634,14 +639,24 @@ export async function addXp(
   }
 
   const previousLevel = user.level;
-  const newXp = user.total_xp + xp;
-  const newWeeklyXp = user.weekly_xp + xp;
+
+  // Atomic increment in SQL prevents lost updates under concurrent messages
+  await database.run(
+    `UPDATE users 
+     SET total_xp = total_xp + ?, 
+         weekly_xp = weekly_xp + ? 
+     WHERE chat_id = ? AND user_id = ?`,
+    [xp, xp, chatId, userId]
+  );
+
+  const updatedUser = await getUser(chatId, userId);
+  const newXp = updatedUser ? updatedUser.total_xp : user.total_xp + xp;
+  const newWeeklyXp = updatedUser ? updatedUser.weekly_xp : user.weekly_xp + xp;
   const newLevel = calculateLevel(newXp);
 
-  await database.run(
-    "UPDATE users SET total_xp = ?, weekly_xp = ?, level = ? WHERE chat_id = ? AND user_id = ?",
-    [newXp, newWeeklyXp, newLevel, chatId, userId]
-  );
+  if (newLevel !== previousLevel) {
+    await database.run("UPDATE users SET level = ? WHERE chat_id = ? AND user_id = ?", [newLevel, chatId, userId]);
+  }
 
   return {
     previousLevel,
