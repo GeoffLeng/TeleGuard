@@ -4,7 +4,7 @@
   "description": "TeleGuard - Telegram Community Moderation, Anti-Spam & Lucky Draw Suite",
   "main": "dist/bot.js",
   "scripts": {
-    "dev": "tsx src/bot.ts",
+    "dev": "tsx watch src/bot.ts",
     "build": "tsc",
     "start": "node dist/bot.js",
     "userbot:setup": "tsx src/userbot-setup.ts"

@@ -101,11 +101,13 @@ loginForm.addEventListener("submit", async (e) => {
   const password = adminPassInput.value;
   const result = await verifyPassword(password);
   if (result.success) {
-    adminPassword = password;
-    localStorage.setItem("admin_password", password);
+    const token = result.token || password;
+    adminPassword = token;
+    sessionStorage.setItem("admin_password", token);
+    localStorage.setItem("admin_password", token);
     showDashboard();
   } else {
-    loginError.textContent = result.error || "Incorrect password, please try again!";
+    loginError.textContent = result.error || (window.i18n ? window.i18n.t("login_error") : "Incorrect password, please try again!");
     loginError.classList.remove("hidden");
   }
 });
@@ -199,14 +201,28 @@ function resetTgLoginUI() {
 
 async function verifyPassword(password) {
   try {
-    const res = await fetch("/api/admin/settings", {
-      headers: { "Authorization": `Bearer ${password}` }
-    });
-    if (res.ok) {
-      return { success: true };
+    // If checking an existing session token
+    if (password.startsWith("session_")) {
+      const res = await fetch("/api/admin/settings", {
+        headers: { "Authorization": `Bearer ${password}` }
+      });
+      if (res.ok) {
+        return { success: true, token: password };
+      }
+      return { success: false };
     }
+
+    // New password login attempt
+    const res = await fetch("/api/admin/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password })
+    });
     const data = await res.json().catch(() => ({}));
-    return { success: false, error: data.error || "Incorrect password, please try again!" };
+    if (res.ok && data.success) {
+      return { success: true, token: data.token };
+    }
+    return { success: false, error: data.error || (window.i18n ? window.i18n.t("login_error") : "Incorrect password, please try again!") };
   } catch (e) {
     console.error("Auth verification failed:", e);
     return { success: false, error: "Network error, please check connection." };

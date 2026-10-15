@@ -336,6 +336,54 @@ app.get("/api/admin/auth/poll", (req, res) => {
   return res.json({ status: "pending" });
 });
 
+app.post("/api/admin/auth/login", authInitLimiter, async (req, res) => {
+  try {
+    const { password } = req.body;
+    if (!password || typeof password !== "string") {
+      return res.status(400).json({ error: "Password is required." });
+    }
+
+    const settings = await db.getSettings();
+    const configuredPassword = settings.admin_password || "";
+    const tokenBuf = Buffer.from(password);
+    const passBuf = Buffer.from(configuredPassword);
+    const isPasswordMatch = tokenBuf.length === passBuf.length && tokenBuf.length > 0 && crypto.timingSafeEqual(tokenBuf, passBuf);
+
+    if (!isPasswordMatch) {
+      return res.status(401).json({ error: "Incorrect password, please try again!" });
+    }
+
+    // IP whitelist verification if configured
+    const whitelistStr = process.env.ADMIN_IP_WHITELIST || "";
+    if (whitelistStr) {
+      const allowedIps = whitelistStr.split(",").map(ip => ip.trim());
+      const clientIp = req.ip || req.socket.remoteAddress || "";
+      let cleanIp = clientIp.startsWith("::ffff:") ? clientIp.substring(7) : clientIp;
+      const rawSocketIp = req.socket.remoteAddress || "";
+      const socketIp = rawSocketIp.startsWith("::ffff:") ? rawSocketIp.substring(7) : rawSocketIp;
+      const isLoopback = socketIp === "127.0.0.1" || socketIp === "::1";
+      const effectiveIp = isLoopback ? (cleanIp || socketIp) : socketIp;
+      if (!allowedIps.includes(effectiveIp)) {
+        return res.status(403).json({ error: "Password login is restricted to whitelisted IPs. Please use Telegram Login instead." });
+      }
+    }
+
+    // Issue ephemeral 12-hour session token
+    cleanExpiredSessions();
+    const token = "session_pwd_" + crypto.randomBytes(32).toString("hex");
+    activeSessions.set(token, {
+      authorized: true,
+      expiresAt: Date.now() + 12 * 60 * 60 * 1000,
+      code: "",
+      ip: req.ip || req.socket.remoteAddress
+    });
+
+    res.json({ success: true, token });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || "Login failed." });
+  }
+});
+
 app.post("/api/admin/auth/logout", (req, res) => {
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith("Bearer ")) {

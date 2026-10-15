@@ -465,6 +465,18 @@ export async function updateLotteryStatus(id: string, status: LotteryStatus, mes
   }
 }
 
+export async function lockLotteryForDrawing(id: string): Promise<boolean> {
+  const db = await getDrawDb();
+  const res = await db.run(
+    'UPDATE lotteries SET status = ? WHERE id = ? AND status IN (?, ?)',
+    LotteryStatus.DRAWING,
+    id,
+    LotteryStatus.ACTIVE,
+    LotteryStatus.DRAFT
+  );
+  return (res.changes || 0) > 0;
+}
+
 export async function recordParticipant(
   lotteryId: string, 
   user: { id: string; username?: string; firstName: string; lastName?: string }, 

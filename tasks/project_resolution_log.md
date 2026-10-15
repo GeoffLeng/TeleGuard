@@ -185,3 +185,25 @@ Chronological technical record of the standalone community bot extraction from T
 - **Explicit JS Visibility Guard**: Added explicit `.hidden` toggles in `showDashboard()` and `logout()` in [public/js/admin.js](file:///f:/Antigravity_Project/TeleGuard/public/js/admin.js#L215-L238).
 - **Cache-Busting**: Bumped CSS version to `admin.css?v=3.3` in [public/admin.html](file:///f:/Antigravity_Project/TeleGuard/public/admin.html#L16).
 
+---
+
+### [2026-10-15] Comprehensive System Hardening & Performance Optimizations
+
+#### 1. Scope & Objectives
+- Implement prioritized recommendations from the code review without extensive refactoring or destructive migrations.
+- Harden web admin credential security, prevent race conditions in giveaways, ensure network resilience, and add render-level CPU caching.
+
+#### 2. Resolutions Applied
+1. **Developer Experience & Instant Hot Reload**:
+   - Upgraded [package.json](file:///f:/Antigravity_Project/TeleGuard/package.json#L7) script to `"dev": "tsx watch src/bot.ts"`, enabling native zero-dependency file-watch reloads.
+2. **Network Resilience & Hard Timeouts (P2)**:
+   - Added native `AbortSignal.timeout(5000)` to remote Telegram avatar fetches in [src/card.ts](file:///f:/Antigravity_Project/TeleGuard/src/card.ts#L27) and [src/bot.ts](file:///f:/Antigravity_Project/TeleGuard/src/bot.ts#L281), preventing Node.js async hangs during CDN delays.
+3. **Lucky Draw Race Condition & Mutex Protection (P2)**:
+   - Added atomic status transition `lockLotteryForDrawing(id)` in [src/drawbot/database.ts](file:///f:/Antigravity_Project/TeleGuard/src/drawbot/database.ts#L468-L478) and applied it in [src/drawbot/bot.ts](file:///f:/Antigravity_Project/TeleGuard/src/drawbot/bot.ts#L450-L465) to eliminate concurrent manual/auto draw execution.
+   - Standardized internal designated-winner errors from Chinese to English in [src/drawbot/bot.ts](file:///f:/Antigravity_Project/TeleGuard/src/drawbot/bot.ts#L534-L545).
+4. **Admin Web Session Security & Tokenization (P1)**:
+   - Created dedicated POST `/api/admin/auth/login` endpoint in [src/server.ts](file:///f:/Antigravity_Project/TeleGuard/src/server.ts#L338-L385) issuing 12-hour random cryptographic session tokens (`session_pwd_...`).
+   - Refactored [public/js/admin.js](file:///f:/Antigravity_Project/TeleGuard/public/js/admin.js#L98-L115, #L198-L225) to store only session tokens in client storage, completely ending plaintext master password persistence in `localStorage`.
+5. **Rank Card Render Buffer Cache**:
+   - Added in-memory 20-second TTL LRU cache in [src/card.ts](file:///f:/Antigravity_Project/TeleGuard/src/card.ts#L106-L120, #L220-L235) to eliminate redundant Sharp libvips SVG rasterization during burst `/rank` commands.
+

@@ -24,7 +24,7 @@ async function imageToBase64(imagePathOrUrl: string): Promise<string | null> {
         console.warn("SSRF Blocked: URL is not a Telegram API host", imagePathOrUrl);
         return null;
       }
-      const res = await fetch(imagePathOrUrl);
+      const res = await fetch(imagePathOrUrl, { signal: AbortSignal.timeout(5000) });
       if (!res.ok) return null;
       const arrayBuffer = await res.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
@@ -104,7 +104,19 @@ interface CardData {
   avatarUrl: string | null; // Telegram direct avatar url
 }
 
+interface CardCacheEntry {
+  buffer: Buffer;
+  expiresAt: number;
+}
+const rankCardCache = new Map<string, CardCacheEntry>();
+
 export async function generateRankCard(data: CardData, settings: BotSettings): Promise<Buffer> {
+  const cacheKey = `${data.rank}_${data.displayName}_${data.level}_${data.totalXp}_${data.avatarUrl || ""}_${settings.card_bg_image || ""}_${settings.card_bg_color || ""}_${settings.card_text_color || ""}`;
+  const cached = rankCardCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.buffer;
+  }
+
   // 1. Prepare avatar base64
   let avatarBase64 = "";
   if (data.avatarUrl) {
@@ -221,5 +233,14 @@ export async function generateRankCard(data: CardData, settings: BotSettings): P
   `;
 
   // Render SVG to PNG using sharp
-  return await sharp(Buffer.from(svg)).png().toBuffer();
+  const buffer = await sharp(Buffer.from(svg)).png().toBuffer();
+
+  if (rankCardCache.size > 150) {
+    const now = Date.now();
+    for (const [k, v] of rankCardCache.entries()) {
+      if (v.expiresAt <= now) rankCardCache.delete(k);
+    }
+  }
+  rankCardCache.set(cacheKey, { buffer, expiresAt: Date.now() + 20000 });
+  return buffer;
 }

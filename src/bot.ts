@@ -278,7 +278,7 @@ async function executeCommand(ctx: Context, cmd: { trigger_name: string; content
               const file = await ctx.api.getFile(photoSize.file_id);
               const remoteAvatarUrl = `https://api.telegram.org/file/bot${BOT_TOKEN}/${file.file_path}`;
 
-              const imgRes = await fetch(remoteAvatarUrl);
+              const imgRes = await fetch(remoteAvatarUrl, { signal: AbortSignal.timeout(5000) });
               if (imgRes.ok) {
                 const arrayBuffer = await imgRes.arrayBuffer();
                 const buffer = Buffer.from(arrayBuffer);

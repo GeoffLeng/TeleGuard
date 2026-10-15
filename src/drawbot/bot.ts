@@ -37,6 +37,7 @@ import { shuffleArray, escapeHtml } from '../utils';
 import { 
   getLotteryById, 
   updateLotteryStatus, 
+  lockLotteryForDrawing,
   recordParticipant, 
   saveWinners, 
   getBotMessages, 
@@ -457,7 +458,10 @@ export async function performDraw(
     return { ok: false, winners: lottery.winners, error: 'Lottery is currently drawing' };
   }
 
-  await updateLotteryStatus(id, LotteryStatus.DRAWING);
+  const locked = await lockLotteryForDrawing(id);
+  if (!locked) {
+    return { ok: false, winners: lottery.winners || [], error: 'Lottery is already drawing or has ended' };
+  }
 
   try {
     const participants = lottery.participants || [];
@@ -533,12 +537,12 @@ export async function performDraw(
       for (const dw of designatedWinners) {
         if (!dw.participantId || !dw.prizeName) continue;
         if (seenCheck.has(dw.participantId)) {
-          throw new Error(`参与者已被重复指定，同一用户只能中奖一次 (ID: ${dw.participantId})`);
+          throw new Error(`Participant is assigned to multiple prizes; a user can only win once (ID: ${dw.participantId})`);
         }
         seenCheck.add(dw.participantId);
         const maxS = quotaCheck.get(dw.prizeName) || 0;
         if (maxS <= 0) {
-          throw new Error(`奖品【${dw.prizeName}】指定人数超出配额上限！`);
+          throw new Error(`Designated winners for prize "${dw.prizeName}" exceed the quota limit!`);
         }
         quotaCheck.set(dw.prizeName, maxS - 1);
       }
